@@ -148,7 +148,7 @@ export class Manager {
         this.connect(connections, window.frameGeometryChanged, () => this.geometryChanged(window));
         this.connect(connections, window.maximizedChanged, () => this.maximizedChanged(window));
         this.connect(connections, window.desktopsChanged, () => this.desktopsChanged(window));
-        this.connect(connections, window.minimizedChanged, () => this.changed());
+        this.connect(connections, window.minimizedChanged, () => this.minimizedChanged(window));
         this.connect(connections, window.fullScreenChanged, () => this.changed());
         this.connect(connections, window.stackingOrderChanged, () => this.changed());
         this.connect(connections, window.closed, () => this.windowGone(window));
@@ -317,6 +317,7 @@ export class Manager {
     // Shows `window` as the current tab of its group.
     activate(group, window) {
         const previous = group.active;
+        this.host.debug(`switch group ${group.id} to "${window.caption}"`);
         if (previous !== window) {
             this.matchGroup(window, previous);
             group.active = window;
@@ -536,6 +537,23 @@ export class Manager {
         this.changed();
     }
 
+    // Minimizing or restoring the visible tab does it for the whole group. The hidden
+    // tabs are minimized too, so that KWin does not activate one of them next.
+    minimizedChanged(window) {
+        const group = this.groupOf(window);
+        if (group) {
+            this.host.debug(`"${window.caption}" minimized=${window.minimized} (visible tab: ${window === group.active})`);
+        }
+        if (group && window === group.active) {
+            for (const member of group.windows) {
+                if (member !== window && member.minimized !== window.minimized) {
+                    member.minimized = window.minimized;
+                }
+            }
+        }
+        this.changed();
+    }
+
     desktopsChanged(window) {
         const group = this.groupOf(window);
         if (group && window === group.active) {
@@ -546,6 +564,16 @@ export class Manager {
 
     windowActivated(window) {
         const group = this.groupOf(window);
+        if (group) {
+            this.host.debug(`activated "${window.caption}" (group ${group.id}, visible tab "${group.active.caption}" minimized=${group.active.minimized})`);
+        }
+        if (group && group.active !== window && group.active.minimized) {
+            // The visible tab was just minimized and KWin gives the focus to the next
+            // window, a hidden tab of the same group: minimize the rest of the group
+            // instead of showing it. KWin then activates a window outside the group.
+            this.minimizedChanged(group.active);
+            return;
+        }
         if (group && group.active !== window) {
             // Something activated a hidden tab (the app itself, a notification...).
             this.activate(group, window);
@@ -675,6 +703,12 @@ export class Manager {
             this.ws.activeWindow = active;
         }
         this.ws.slotWindowMove();
+    }
+
+    minimizeGroup(group) {
+        if (group.active.minimizable) {
+            group.active.minimized = true;
+        }
     }
 
     toggleMaximize(group) {

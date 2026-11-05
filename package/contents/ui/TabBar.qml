@@ -21,8 +21,13 @@ Window {
     // Reading activeWindow.frameGeometry here makes the bar follow the window live.
     readonly property var place: (revision, group && activeWindow ? manager.barRect(group, activeWindow.frameGeometry) : null)
     readonly property bool inside: place ? place.inside : false
+    // Above the window the bar is the group's title bar: tabs, a free part to drag the
+    // group, and minimize / maximize buttons. Over a maximized window (the app's own
+    // title bar and buttons are there) it only holds the tabs.
+    readonly property real buttonSize: height - 8
+    readonly property real controlsWidth: inside ? 0 : Kirigami.Units.gridUnit * 3 + 2 * (buttonSize + Kirigami.Units.smallSpacing)
     readonly property real tabWidth: windows.length > 0
-        ? Math.min(config.tabWidth, (width - 2 * Kirigami.Units.smallSpacing) / windows.length) : 0
+        ? Math.max(0, Math.min(config.tabWidth, (width - 2 * Kirigami.Units.smallSpacing - controlsWidth) / windows.length)) : 0
 
     // Tab being dragged, and whether the pointer left the bar.
     property var draggedWindow: null
@@ -255,6 +260,81 @@ Window {
                                 onClicked: bar.manager.closeTab(tab.modelData)
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        Row {
+            id: controls
+            visible: !bar.inside
+            anchors.right: parent.right
+            anchors.rightMargin: Kirigami.Units.smallSpacing
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: Kirigami.Units.smallSpacing
+
+            // Drawn like Breeze's own title bar buttons (icon themes often have arrows).
+            component BarButton: Rectangle {
+                id: button
+                signal clicked()
+                default property alias glyph: glyphArea.data
+                width: bar.buttonSize
+                height: bar.buttonSize
+                radius: width / 2
+                color: {
+                    const c = Kirigami.Theme.textColor;
+                    return Qt.rgba(c.r, c.g, c.b, buttonMouse.pressed ? 0.2 : buttonMouse.containsMouse ? 0.1 : 0);
+                }
+                Item {
+                    id: glyphArea
+                    anchors.centerIn: parent
+                    width: 10
+                    height: 10
+                }
+                MouseArea {
+                    id: buttonMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: button.clicked()
+                }
+            }
+
+            BarButton {
+                onClicked: bar.manager.minimizeGroup(bar.group)
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width
+                    height: 1
+                    color: Kirigami.Theme.textColor
+                }
+            }
+
+            BarButton {
+                id: maximizeButton
+                readonly property bool maximized: bar.activeWindow ? bar.activeWindow.maximizeMode === 3 : false
+                onClicked: bar.manager.toggleMaximize(bar.group)
+                Rectangle {
+                    visible: !maximizeButton.maximized
+                    anchors.fill: parent
+                    color: "transparent"
+                    border.width: 1
+                    border.color: Kirigami.Theme.textColor
+                }
+                // Restore: two overlapping squares.
+                Item {
+                    visible: maximizeButton.maximized
+                    anchors.fill: parent
+                    Rectangle {
+                        x: 2; y: 0; width: 8; height: 8
+                        color: "transparent"
+                        border.width: 1
+                        border.color: Kirigami.Theme.textColor
+                    }
+                    Rectangle {
+                        x: 0; y: 2; width: 8; height: 8
+                        color: Kirigami.Theme.backgroundColor
+                        border.width: 1
+                        border.color: Kirigami.Theme.textColor
                     }
                 }
             }

@@ -21,9 +21,6 @@ done
 install_pkg KWin/Script "$REPO_DIR/package"
 
 kwriteconfig6 --file kwinrc --group Plugins --key "${SCRIPT_ID}Enabled" true
-if [[ "$TARGET" == "nested" ]]; then
-    kwriteconfig6 --file kwinrc --group "Script-$SCRIPT_ID" --key Debug true
-fi
 kwin_dbus /Scripting org.kde.kwin.Scripting.start >/dev/null
 if [[ "$(kwin_dbus /Scripting org.kde.kwin.Scripting.isScriptLoaded "$SCRIPT_ID")" == "true" ]]; then
     echo "United Sets X is installed and running ($TARGET)."

@@ -34,6 +34,8 @@ fi
 
 mkdir -p "$NESTED_DIR/config" "$NESTED_DIR/data" "$NESTED_DIR/cache"
 rm -f "$NESTED_DIR/env"
+# Verbose script log in the nested session (written before KWin reads its config).
+XDG_CONFIG_HOME="$NESTED_DIR/config" kwriteconfig6 --file kwinrc --group "Script-$SCRIPT_ID" --key Debug true
 # Same colors, fonts and accent as the real session.
 cp -f "$HOME/.config/kdeglobals" "$NESTED_DIR/config/" 2>/dev/null || true
 
@@ -48,11 +50,21 @@ mv "$dir/env.tmp" "$dir/env"
 EOS
 chmod +x "$NESTED_DIR/reporter.sh"
 
-# Themes, icons and cursors installed in ~/.local/share stay visible; script messages
-# and QML errors are logged.
+# Themes, icons and cursors installed in ~/.local/share stay visible, but not the KWin
+# scripts and effects installed in the real session (they would shadow the working copy).
+rm -rf "$NESTED_DIR/userdata"
+mkdir -p "$NESTED_DIR/userdata"
+for entry in "$HOME/.local/share"/*; do
+    case "$(basename "$entry")" in
+        kwin|kwin-wayland) ;;
+        *) ln -s "$entry" "$NESTED_DIR/userdata/" ;;
+    esac
+done
+
+# Script messages and QML errors are logged.
 XDG_CONFIG_HOME="$NESTED_DIR/config" XDG_DATA_HOME="$NESTED_DIR/data" XDG_CACHE_HOME="$NESTED_DIR/cache" \
 QML_DISABLE_DISK_CACHE=1 \
-XDG_DATA_DIRS="$HOME/.local/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" \
+XDG_DATA_DIRS="$NESTED_DIR/userdata:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" \
 QT_LOGGING_RULES="kwin_scripting.debug=true;qml.debug=true;js.debug=true" \
     setsid dbus-run-session -- kwin_wayland \
         --socket "$NESTED_SOCKET" --xwayland --no-lockscreen \
