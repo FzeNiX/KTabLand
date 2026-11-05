@@ -664,6 +664,28 @@ export class Manager {
         }
     }
 
+    // The empty part of a tab bar is being dragged: start KWin's own interactive move
+    // of the visible tab, anchored at the cursor, as if its title bar was dragged.
+    moveGroup(group) {
+        const active = group.active;
+        if (active.move || active.resize) {
+            return;
+        }
+        if (this.ws.activeWindow !== active) {
+            this.ws.activeWindow = active;
+        }
+        this.ws.slotWindowMove();
+    }
+
+    toggleMaximize(group) {
+        const active = group.active;
+        if (!active.maximizable) {
+            return;
+        }
+        const full = active.maximizeMode === 3;
+        active.setMaximize(!full, !full);
+    }
+
     closeTab(window) {
         window.closeWindow();
     }

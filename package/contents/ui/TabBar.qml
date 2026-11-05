@@ -62,6 +62,28 @@ Window {
             border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.15)
         }
 
+        // The empty part of the bar works like a title bar for the whole group: drag to
+        // move it (a real KWin move, so snapping, tiling and drag-to-group work), double
+        // click to maximize or restore it.
+        MouseArea {
+            id: stripMouse
+
+            property point pressPoint
+
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton
+
+            onPressed: (mouse) => {
+                pressPoint = Qt.point(mouse.x, mouse.y);
+            }
+            onPositionChanged: (mouse) => {
+                if (Math.abs(mouse.x - pressPoint.x) + Math.abs(mouse.y - pressPoint.y) >= Qt.styleHints.startDragDistance) {
+                    bar.manager.moveGroup(bar.group);
+                }
+            }
+            onDoubleClicked: bar.manager.toggleMaximize(bar.group)
+        }
+
         Row {
             id: tabs
             x: Kirigami.Units.smallSpacing
