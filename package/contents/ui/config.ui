@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UnitedSetsXConfig</class>
+ <widget class="QWidget" name="UnitedSetsXConfig">
+  <layout class="QFormLayout" name="form">
+   <item row="0" column="0">
+    <widget class="QLabel" name="modifierLabel">
+     <property name="text"><string>Key to hold while dragging:</string></property>
+     <property name="buddy"><cstring>kcfg_GroupModifier</cstring></property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="kcfg_GroupModifier">
+     <item><property name="text"><string>Shift (also snaps to custom tiles)</string></property></item>
+     <item><property name="text"><string>Ctrl</string></property></item>
+     <item><property name="text"><string>Alt</string></property></item>
+     <item><property name="text"><string>Meta</string></property></item>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLabel" name="modifierHint">
+     <property name="text"><string>Hold this key, drag a window by its title bar and drop it on another window or on a tab bar to group them.</string></property>
+     <property name="wordWrap"><bool>true</bool></property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="tabBarLabel">
+     <property name="text"><string>Tab bar:</string></property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QCheckBox" name="kcfg_ShowTabBar">
+     <property name="text"><string>Show a tab bar above each group</string></property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="heightLabel">
+     <property name="text"><string>Tab bar height:</string></property>
+     <property name="buddy"><cstring>kcfg_TabBarHeight</cstring></property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QSpinBox" name="kcfg_TabBarHeight">
+     <property name="suffix"><string> px</string></property>
+     <property name="minimum"><number>22</number></property>
+     <property name="maximum"><number>64</number></property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="widthLabel">
+     <property name="text"><string>Maximum tab width:</string></property>
+     <property name="buddy"><cstring>kcfg_TabWidth</cstring></property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QSpinBox" name="kcfg_TabWidth">
+     <property name="suffix"><string> px</string></property>
+     <property name="minimum"><number>80</number></property>
+     <property name="maximum"><number>600</number></property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLabel" name="shortcutHint">
+     <property name="text"><string>Shortcuts (next / previous tab...) are in System Settings › Keyboard › Shortcuts › KWin, under "United Sets X".</string></property>
+     <property name="wordWrap"><bool>true</bool></property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

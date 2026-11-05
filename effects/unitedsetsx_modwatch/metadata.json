@@ -1,0 +1,15 @@
+{
+    "KPackageStructure": "KWin/Effect",
+    "KPlugin": {
+        "Authors": [{ "Name": "FzeNiX" }],
+        "Category": "Tools",
+        "Description": "Internal helper of the United Sets X KWin script: reports held modifier keys",
+        "EnabledByDefault": false,
+        "Id": "unitedsetsx_modwatch",
+        "License": "MIT",
+        "Name": "United Sets X modifier watcher",
+        "Version": "0.1.0"
+    },
+    "X-KWin-Internal": true,
+    "X-Plasma-API": "javascript"
+}

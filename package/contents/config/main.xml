@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+    <group name="">
+        <!-- Key held while dragging a window to group it: 0 Shift, 1 Ctrl, 2 Alt, 3 Meta -->
+        <entry name="GroupModifier" type="Int">
+            <default>1</default>
+        </entry>
+        <entry name="ShowTabBar" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="TabBarHeight" type="Int">
+            <default>32</default>
+            <min>22</min>
+            <max>64</max>
+        </entry>
+        <entry name="TabWidth" type="Int">
+            <default>220</default>
+            <min>80</min>
+            <max>600</max>
+        </entry>
+    </group>
+</kcfg>
