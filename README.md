@@ -16,8 +16,12 @@ their own title bar, like Chrome, Firefox or GTK apps).
 - **Tab bar** in the Breeze style, following your color scheme, accent color and light / dark theme: click a
   tab to switch, <kbd>✕</kbd> or middle click to close, drag to reorder, drag out to release the window,
   drag onto another group's tab bar to move it there.
-- **One window per group**: moving, resizing, maximizing or changing the desktop of the visible tab applies
-  to the whole group. Hidden tabs are out of the taskbar, Alt+Tab and the pager.
+- **One window per group**: the tab bar is the group's title bar (drag its free part to move the group,
+  double click to maximize, minimize / maximize / close-all buttons). Moving, resizing, minimizing,
+  maximizing or changing the desktop of the visible tab applies to the whole group. Hidden tabs are out of
+  the taskbar, Alt+Tab and the pager.
+- **Maximized groups** keep their own full-width tab bar at the top of the screen, with the app below it
+  (its own title bar and tabs, e.g. Chrome's, stay visible), like Groupy and United Sets X on Windows.
 - **Shortcuts** (System Settings › Keyboard › Shortcuts › KWin): next / previous tab (<kbd>Meta</kbd>+<kbd>`</kbd> /
   <kbd>Meta</kbd>+<kbd>~</kbd>), group the active window with the window under it, release the active tab.
 - **Safe**: when the script is disabled, removed or reinstalled, every hidden window is shown again; windows
@@ -41,8 +45,8 @@ Remove with `tools/uninstall.sh` (every grouped window is given back first).
 
 - The tab bar is a KWin internal window, and KWin always stacks those above normal windows, so a tab bar
   hides itself while another window overlaps it.
-- When there is no room above the window (maximized, top of the screen), the tab bar sits over the top of
-  the window, centered.
+- When there is no room above a window that is not maximized (at the very top of the screen), the tab bar
+  sits over the top of the window, centered.
 - Updating the script's code in a running session takes effect after logging out and in again (KWin caches
   the QML files of scripts).
 

@@ -117,6 +117,13 @@ Item {
         onActivated: root.manager.detachActive()
     }
 
+    ShortcutHandler {
+        name: "UnitedSetsX Debug Dump"
+        text: "United Sets X: Print the groups to the log (debug)"
+        sequence: ""
+        onActivated: root.manager.dump()
+    }
+
     // KWin re-reads its config (System Settings › KWin Scripts › Apply) without restarting
     // scripts, so settings are applied live and groups survive.
     Connections {
@@ -133,6 +140,7 @@ Item {
             clientArea: (window) => Workspace.clientArea(KWin.MaximizeArea, window),
             config: () => root.config,
             changed: () => Qt.callLater(root.bump),
+            later: (fn) => Qt.callLater(fn),
             groupAdded: (id) => groupModel.append({ gid: id }),
             groupRemoved: (id) => {
                 for (let i = 0; i < groupModel.count; i++) {

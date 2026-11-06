@@ -25,7 +25,7 @@ Window {
     // group, and minimize / maximize buttons. Over a maximized window (the app's own
     // title bar and buttons are there) it only holds the tabs.
     readonly property real buttonSize: height - 8
-    readonly property real controlsWidth: inside ? 0 : Kirigami.Units.gridUnit * 3 + 2 * (buttonSize + Kirigami.Units.smallSpacing)
+    readonly property real controlsWidth: inside ? 0 : Kirigami.Units.gridUnit * 3 + 3 * (buttonSize + Kirigami.Units.smallSpacing)
     readonly property real tabWidth: windows.length > 0
         ? Math.max(0, Math.min(config.tabWidth, (width - 2 * Kirigami.Units.smallSpacing - controlsWidth) / windows.length)) : 0
 
@@ -281,7 +281,12 @@ Window {
                 width: bar.buttonSize
                 height: bar.buttonSize
                 radius: width / 2
+                property bool danger: false
+                readonly property bool hovered: buttonMouse.containsMouse
                 color: {
+                    if (danger && (buttonMouse.containsMouse || buttonMouse.pressed)) {
+                        return buttonMouse.pressed ? Qt.darker(Kirigami.Theme.negativeTextColor, 1.2) : Kirigami.Theme.negativeTextColor;
+                    }
                     const c = Kirigami.Theme.textColor;
                     return Qt.rgba(c.r, c.g, c.b, buttonMouse.pressed ? 0.2 : buttonMouse.containsMouse ? 0.1 : 0);
                 }
@@ -311,7 +316,7 @@ Window {
 
             BarButton {
                 id: maximizeButton
-                readonly property bool maximized: bar.activeWindow ? bar.activeWindow.maximizeMode === 3 : false
+                readonly property bool maximized: (bar.revision, bar.group && bar.activeWindow ? bar.manager.isMaximized(bar.group) : false)
                 onClicked: bar.manager.toggleMaximize(bar.group)
                 Rectangle {
                     visible: !maximizeButton.maximized
@@ -335,6 +340,25 @@ Window {
                         color: Kirigami.Theme.backgroundColor
                         border.width: 1
                         border.color: Kirigami.Theme.textColor
+                    }
+                }
+            }
+
+            // Closes every window of the group.
+            BarButton {
+                id: closeGroupButton
+                danger: true
+                onClicked: bar.manager.closeGroup(bar.group)
+                Repeater {
+                    model: [45, -45]
+                    Rectangle {
+                        required property int modelData
+                        anchors.centerIn: parent
+                        width: 13
+                        height: 1.2
+                        rotation: modelData
+                        antialiasing: true
+                        color: closeGroupButton.hovered ? "white" : Kirigami.Theme.textColor
                     }
                 }
             }

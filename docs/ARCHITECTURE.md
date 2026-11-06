@@ -55,3 +55,12 @@ Each tab bar is a QML `Window` created by the script, which KWin turns into an i
 internal windows in its overlay layer (above normal windows, `Window::belongsToLayer`), so a bar hides
 itself while another visible window overlaps it (`Manager.isBarCovered`). Internal windows never take
 keyboard focus, so clicking a tab does not steal focus from the app.
+
+## Maximized groups
+
+KWin's maximize would cover the tab bar, so a group is maximized by the script: the visible tab is
+unmaximized and placed in the work area below a full-width tab bar (`Manager.maximizeGroup`). Any KWin
+maximize of the visible tab (app button, double click, drag to the top edge, shortcut) is turned into a
+group maximize, or into a restore when the group is already maximized (KWin sees it as not maximized);
+the restore runs after KWin has finished its own maximize (`host.later`). Moving a maximized group
+restores its size under the cursor; when a maximized group ends, its windows are maximized by KWin.
