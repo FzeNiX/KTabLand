@@ -10,6 +10,17 @@ install_pkg() { # type dir
     kpackagetool6 --type "$1" --upgrade "$2" >/dev/null 2>&1 || kpackagetool6 --type "$1" --install "$2" >/dev/null
 }
 
+# --files-only: copy the packages and enable the script, without talking to KWin
+# (used by nested.sh before the nested KWin starts).
+if [[ " ${ARGS[*]} " == *" --files-only "* ]]; then
+    for id in "${EFFECT_IDS[@]}"; do
+        install_pkg KWin/Effect "$REPO_DIR/effects/$id"
+    done
+    install_pkg KWin/Script "$REPO_DIR/package"
+    kwriteconfig6 --file kwinrc --group Plugins --key "${SCRIPT_ID}Enabled" true
+    exit 0
+fi
+
 # Stop the running copy first: the script gives every hidden window back when it stops.
 if [[ "$(kwin_dbus /Scripting org.kde.kwin.Scripting.isScriptLoaded "$SCRIPT_ID")" == "true" ]]; then
     kwin_dbus /Scripting org.kde.kwin.Scripting.unloadScript "$SCRIPT_ID" >/dev/null

@@ -34,7 +34,11 @@ fi
 
 mkdir -p "$NESTED_DIR/config" "$NESTED_DIR/data" "$NESTED_DIR/cache"
 rm -f "$NESTED_DIR/env"
-# Verbose script log in the nested session (written before KWin reads its config).
+# Install the working copy before KWin starts: KWin loads enabled scripts at startup and
+# then keeps their QML files cached, so files replaced later would not be used.
+XDG_CONFIG_HOME="$NESTED_DIR/config" XDG_DATA_HOME="$NESTED_DIR/data" \
+    "$(dirname "$0")/install.sh" --files-only
+# Verbose script log in the nested session.
 XDG_CONFIG_HOME="$NESTED_DIR/config" kwriteconfig6 --file kwinrc --group "Script-$SCRIPT_ID" --key Debug true
 # Same colors, fonts and accent as the real session.
 cp -f "$HOME/.config/kdeglobals" "$NESTED_DIR/config/" 2>/dev/null || true
@@ -78,5 +82,10 @@ for _ in $(seq 50); do
 done
 [[ -f "$NESTED_DIR/env" ]] || die "nested KWin did not start, see $NESTED_DIR/kwin.log"
 
-"$(dirname "$0")/install.sh" --nested
+use_target --nested
+if [[ "$(kwin_dbus /Scripting org.kde.kwin.Scripting.isScriptLoaded "$SCRIPT_ID")" == "true" ]]; then
+    echo "United Sets X is running (nested)."
+else
+    echo "warning: KWin did not load the script, see $NESTED_DIR/kwin.log" >&2
+fi
 echo "Nested KWin is running. Try: tools/nested-run.sh kate   (or xterm for an XWayland window)"

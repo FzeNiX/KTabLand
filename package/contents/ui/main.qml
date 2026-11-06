@@ -22,6 +22,12 @@ Item {
             showTabBar: Boolean(KWin.readConfig("ShowTabBar", true)),
             tabBarHeight: Number(KWin.readConfig("TabBarHeight", 32)),
             tabWidth: Number(KWin.readConfig("TabWidth", 220)),
+            // 0 opaque (color scheme), 1 translucent (Plasma theme, blurred)
+            barStyle: Number(KWin.readConfig("BarStyle", 0)),
+            // How far the bar covers the top of the window, hiding its rounded corners.
+            overlap: Number(KWin.readConfig("CornerOverlap", 6)),
+            // Size of the squares that fill the window's rounded top corners under the bar.
+            cornerFill: Number(KWin.readConfig("CornerFill", 6)),
             debug: Boolean(KWin.readConfig("Debug", false)),
         };
     }
@@ -42,15 +48,32 @@ Item {
     }
 
     Instantiator {
-        id: bars
         model: groupModel
-        delegate: TabBar {
+        active: root.config.barStyle !== 1
+        delegate: SolidBar {
             required property int gid
             groupId: gid
             manager: root.manager
             revision: root.revision
             config: root.config
         }
+    }
+
+    Instantiator {
+        model: groupModel
+        active: root.config.barStyle === 1
+        delegate: TranslucentBar {
+            required property int gid
+            groupId: gid
+            manager: root.manager
+            revision: root.revision
+            config: root.config
+        }
+    }
+
+    TabOptions {
+        id: tabOptions
+        manager: root.manager
     }
 
     DropHighlight {
@@ -118,6 +141,18 @@ Item {
     }
 
     ShortcutHandler {
+        name: "UnitedSetsX Tab Options"
+        text: "United Sets X: Name and color of the active tab"
+        sequence: ""
+        onActivated: {
+            const window = Workspace.activeWindow;
+            if (window && root.manager.groupOf(window)) {
+                root.manager.openTabOptions(window);
+            }
+        }
+    }
+
+    ShortcutHandler {
         name: "UnitedSetsX Debug Dump"
         text: "United Sets X: Print the groups to the log (debug)"
         sequence: ""
@@ -141,6 +176,7 @@ Item {
             config: () => root.config,
             changed: () => Qt.callLater(root.bump),
             later: (fn) => Qt.callLater(fn),
+            openTabOptions: (window) => tabOptions.open(window),
             groupAdded: (id) => groupModel.append({ gid: id }),
             groupRemoved: (id) => {
                 for (let i = 0; i < groupModel.count; i++) {
@@ -165,6 +201,9 @@ Item {
         });
         manager.start();
         log("started");
+        if (config.debug) {
+            log("settings " + JSON.stringify(config));
+        }
     }
 
     Component.onDestruction: {

@@ -59,7 +59,39 @@
      <property name="maximum"><number>600</number></property>
     </widget>
    </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="styleLabel">
+     <property name="text"><string>Tab bar style:</string></property>
+     <property name="buddy"><cstring>kcfg_BarStyle</cstring></property>
+    </widget>
+   </item>
    <item row="5" column="1">
+    <widget class="QComboBox" name="kcfg_BarStyle">
+     <item><property name="text"><string>Opaque (color scheme)</string></property></item>
+     <item><property name="text"><string>Translucent (Plasma theme, like the panel)</string></property></item>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="overlapLabel">
+     <property name="text"><string>Cover window corners:</string></property>
+     <property name="buddy"><cstring>kcfg_CornerOverlap</cstring></property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QSpinBox" name="kcfg_CornerOverlap">
+     <property name="suffix"><string> px</string></property>
+     <property name="minimum"><number>0</number></property>
+     <property name="maximum"><number>16</number></property>
+     <property name="toolTip"><string>How much of the window's top edge the tab bar covers, to hide its rounded corners.</string></property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="QLabel" name="tabOptionsHint">
+     <property name="text"><string>Right click a tab to rename it or give it a color.</string></property>
+     <property name="wordWrap"><bool>true</bool></property>
+    </widget>
+   </item>
+   <item row="8" column="1">
     <widget class="QLabel" name="shortcutHint">
      <property name="text"><string>Shortcuts (next / previous tab...) are in System Settings › Keyboard › Shortcuts › KWin, under "United Sets X".</string></property>
      <property name="wordWrap"><bool>true</bool></property>

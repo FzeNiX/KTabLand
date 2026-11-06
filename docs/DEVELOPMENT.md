@@ -57,5 +57,9 @@ qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.isEffectLoaded unitedsetsx_mod
 - Script declarative không có `workspace.windowList()`; dùng `Workspace.windows`.
 - Cửa sổ nội bộ của KWin (thanh tab) có `managed = true`, `pid = -1`, `resourceClass` rỗng.
 - Binding QML không được đọc `Workspace.stackingOrder` (không bindable, KWin in cảnh báo mỗi lần).
+- KWin nạp script đang bật ngay lúc khởi động rồi cache file QML theo đường dẫn: muốn chạy code mới
+  thì phải chép file **trước** khi KWin khởi động (`nested.sh` làm vậy) hoặc khởi động lại KWin.
+- KWin không chuyển bàn phím cho cửa sổ nội bộ; ô nhập chữ phải nằm trong một `SceneEffect`.
+- Spectacle không chụp được `SceneEffect` (hộp thoại đặt tên tab) trong KWin lồng.
 - Tiến trình con của KWin được chạy qua systemd: PID cha của nó là `systemd --user`, **không phải**
   KWin. Đừng bao giờ kill theo `$PPID` (lỗi này từng làm sập cả phiên).

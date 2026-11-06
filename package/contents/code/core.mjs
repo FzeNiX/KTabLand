@@ -54,6 +54,7 @@ export class Manager {
     //   dragStarted(), dragEnded()     a window move began / ended (host polls the modifier)
     //   highlight(rect | null)         show / hide the drop highlight
     //   later(fn)                      runs fn after the current KWin event
+    //   openTabOptions(window)         shows the tab name / color dialog
     //   log(message), debug(message)   debug() prints only with Debug=true in the config
     // }
     constructor(host) {
@@ -208,8 +209,10 @@ export class Manager {
         const config = this.host.config();
         const height = config.tabBarHeight;
         const area = this.host.clientArea(group.active);
-        if (frame.y - height >= area.y - 0.5) {
-            return { x: frame.x, y: frame.y - height, width: frame.width, height, inside: false };
+        // The bar overlaps the top of the window a little, hiding its rounded corners.
+        const top = frame.y - height + config.overlap;
+        if (top >= area.y - 0.5) {
+            return { x: frame.x, y: top, width: frame.width, height, inside: false };
         }
         const width = Math.min(frame.width, group.windows.length * config.tabWidth + 8);
         return { x: frame.x + (frame.width - width) / 2, y: frame.y, width, height, inside: true };
@@ -420,6 +423,7 @@ export class Manager {
         }
         if (restore) {
             this.restoreWindow(window, saved);
+            this.tabInfos?.delete(key(window));
         }
         if (group.windows.length <= 1) {
             this.dissolve(group);
@@ -433,6 +437,7 @@ export class Manager {
     dissolve(group) {
         this.unconstrainAll(group);
         for (const window of group.windows) {
+            this.tabInfos?.delete(key(window));
             if (!window.deleted) {
                 this.restoreWindow(window, group.saved.get(key(window)));
                 if (group.maximized && window.maximizable) {
@@ -614,7 +619,7 @@ export class Manager {
         const active = group.active;
         const area = this.host.clientArea(active);
         this.host.debug(`group ${group.id} maximized into ${JSON.stringify(plainRect(area))}`);
-        const height = this.host.config().tabBarHeight;
+        const height = this.host.config().tabBarHeight - this.host.config().overlap;
         this.applyingMaximize = true;
         if (active.maximizeMode !== 0) {
             active.setMaximize(false, false);
@@ -706,6 +711,7 @@ export class Manager {
     }
 
     windowGone(window) {
+        this.tabInfos?.delete(key(window));
         const hook = this.hooks.get(key(window));
         if (hook) {
             this.disconnectAll(hook.connections);
@@ -848,6 +854,33 @@ export class Manager {
 
     isMaximized(group) {
         return group.maximized || group.active.maximizeMode === 3;
+    }
+
+    // ---------------------------------------------------------------- tab names and colors
+
+    // Name and color given to a tab by the user (kept while the window is grouped).
+    tabInfo(window) {
+        return this.tabInfos?.get(key(window)) ?? { name: "", color: "" };
+    }
+
+    setTabInfo(window, name, color) {
+        if (!this.tabInfos) {
+            this.tabInfos = new Map();
+        }
+        if (!name && !color) {
+            this.tabInfos.delete(key(window));
+        } else {
+            this.tabInfos.set(key(window), { name, color });
+        }
+        this.changed();
+    }
+
+    openTabOptions(window) {
+        this.host.openTabOptions(window);
+    }
+
+    tabLabel(window) {
+        return this.tabInfo(window).name || window.caption;
     }
 
     closeGroup(group) {

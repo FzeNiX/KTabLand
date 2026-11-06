@@ -5,10 +5,16 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.kwin
 
-// The tab bar of one group: a KWin internal window placed by the script above the
-// group's active window (or over its top edge when there is no room above).
-Window {
+// Content of the tab bar of one group. SolidBar.qml / TranslucentBar.qml put it in a KWin
+// internal window placed by the script above the group's active window (or over its top
+// edge when there is no room above).
+Item {
     id: bar
+
+    // The window holding this bar (for global coordinates) and whether that window draws
+    // a translucent Plasma background itself.
+    property var hostWindow: null
+    property bool translucent: false
 
     property int groupId: 0
     property var manager: null
@@ -24,7 +30,11 @@ Window {
     // Above the window the bar is the group's title bar: tabs, a free part to drag the
     // group, and minimize / maximize buttons. Over a maximized window (the app's own
     // title bar and buttons are there) it only holds the tabs.
-    readonly property real buttonSize: height - 8
+    readonly property real buttonSize: Math.max(16, Math.min(height, config.tabBarHeight) - 8)
+    // Color of the squares filling the window's corners under the bar (CornerEars).
+    readonly property color cornerColor: translucent
+        ? Qt.rgba(content.Kirigami.Theme.backgroundColor.r, content.Kirigami.Theme.backgroundColor.g, content.Kirigami.Theme.backgroundColor.b, 0.85)
+        : content.Kirigami.Theme.backgroundColor
     readonly property real controlsWidth: inside ? 0 : Kirigami.Units.gridUnit * 3 + 3 * (buttonSize + Kirigami.Units.smallSpacing)
     readonly property real tabWidth: windows.length > 0
         ? Math.max(0, Math.min(config.tabWidth, (width - 2 * Kirigami.Units.smallSpacing - controlsWidth) / windows.length)) : 0
@@ -33,20 +43,12 @@ Window {
     property var draggedWindow: null
     property bool draggedOut: false
 
-    flags: Qt.FramelessWindowHint | Qt.BypassWindowManagerHint
-    color: "transparent"
-    title: "United Sets X tab bar"
-    x: place ? Math.round(place.x) : 0
-    y: place ? Math.round(place.y) : 0
-    width: place ? Math.max(1, Math.round(place.width)) : 1
-    height: place ? Math.max(1, Math.round(place.height)) : 1
-    visible: (revision, group !== null && place !== null && manager.isBarShown(groupId)) || draggedWindow !== null
-
-    onVisibleChanged: if (config.debug) console.info("UnitedSetsX: bar", groupId, "visible", visible, x, y, width, height)
+    readonly property bool shown: (revision, group !== null && place !== null && manager.isBarShown(groupId)) || draggedWindow !== null
 
     function containsGlobal(position, margin) {
-        return position.x >= x - margin && position.x < x + width + margin
-            && position.y >= y - margin && position.y < y + height + margin;
+        const w = hostWindow;
+        return position.x >= w.x - margin && position.x < w.x + w.width + margin
+            && position.y >= w.y - margin && position.y < w.y + w.height + margin;
     }
 
     Item {
@@ -59,6 +61,7 @@ Window {
         // Strip behind the tabs. Over a window (no room above it), the bar is a
         // rounded floating strip instead of a full-width one.
         Rectangle {
+            visible: !bar.translucent
             anchors.fill: parent
             anchors.margins: bar.inside ? 2 : 0
             radius: bar.inside ? Kirigami.Units.cornerRadius : 0
@@ -108,6 +111,9 @@ Window {
 
                     readonly property bool current: modelData === bar.activeWindow
                     readonly property bool dragged: modelData === bar.draggedWindow
+                    // Name and color given by the user (right click).
+                    readonly property var info: (bar.revision, bar.manager.tabInfo(modelData))
+                    readonly property color tint: info.color || "transparent"
                     property real dragOffset: 0
 
                     width: bar.tabWidth
@@ -131,6 +137,9 @@ Window {
                             color: parent.color
                         }
                         color: {
+                            if (tab.info.color) {
+                                return Qt.rgba(tab.tint.r, tab.tint.g, tab.tint.b, tab.current ? 0.4 : tabMouse.containsMouse ? 0.3 : 0.2);
+                            }
                             if (tab.current) {
                                 return Kirigami.Theme.alternateBackgroundColor;
                             }
@@ -146,7 +155,7 @@ Window {
                             anchors.leftMargin: parent.radius
                             anchors.rightMargin: parent.radius
                             height: 2
-                            color: Kirigami.Theme.highlightColor
+                            color: tab.info.color || Kirigami.Theme.highlightColor
                         }
                     }
 
@@ -168,14 +177,14 @@ Window {
 
                         anchors.fill: parent
                         hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
 
                         onPressed: (mouse) => {
                             pressPoint = Qt.point(mouse.x, mouse.y);
                             dragging = false;
                         }
                         onPositionChanged: (mouse) => {
-                            if (!pressed || !(pressedButtons & Qt.LeftButton)) {
+                            if (!pressed || !(pressedButtons & Qt.LeftButton) || (pressedButtons & Qt.RightButton)) {
                                 return;
                             }
                             if (!dragging && Math.abs(mouse.x - pressPoint.x) + Math.abs(mouse.y - pressPoint.y) >= Qt.styleHints.startDragDistance) {
@@ -207,6 +216,8 @@ Window {
                                 }
                             } else if (mouse.button === Qt.MiddleButton) {
                                 bar.manager.closeTab(tab.modelData);
+                            } else if (mouse.button === Qt.RightButton) {
+                                bar.manager.openTabOptions(tab.modelData);
                             } else {
                                 bar.manager.activate(bar.group, tab.modelData);
                             }
@@ -226,7 +237,7 @@ Window {
                         }
 
                         Text {
-                            text: tab.modelData.caption
+                            text: tab.info.name || tab.modelData.caption
                             elide: Text.ElideRight
                             color: Kirigami.Theme.textColor
                             opacity: tab.current ? 1 : 0.75
