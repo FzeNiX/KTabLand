@@ -210,7 +210,7 @@ export class Manager {
         const height = config.tabBarHeight;
         const area = this.host.clientArea(group.active);
         // The bar overlaps the top of the window a little, hiding its rounded corners.
-        const top = frame.y - height + config.overlap;
+        const top = frame.y - height + (group.maximized ? 0 : config.overlap);
         if (top >= area.y - 0.5) {
             return { x: frame.x, y: top, width: frame.width, height, inside: false };
         }
@@ -324,6 +324,11 @@ export class Manager {
             // KWin tiles a window dropped with Shift held; the group decides the geometry.
             window.tile = null;
         }
+        if (group.maximized) {
+            this.removeBorder(window);
+        } else {
+            this.giveBorderBack(window);
+        }
         if (window !== group.active) {
             this.matchGroup(window, group.active);
             this.hide(window);
@@ -377,7 +382,7 @@ export class Manager {
         if (!group) {
             return;
         }
-        const size = group.maximized ? this.restoreGeometry(group) : null;
+        const size = group.maximized ? (group.restore ?? this.defaultRestore(group)) : null;
         this.removeMember(group, window, true);
         const frame = size ?? window.frameGeometry;
         // Under the cursor for a tab dragged out, slightly offset for the shortcut so
@@ -423,6 +428,7 @@ export class Manager {
         }
         if (restore) {
             this.restoreWindow(window, saved);
+            this.giveBorderBack(window);
             this.tabInfos?.delete(key(window));
         }
         if (group.windows.length <= 1) {
@@ -440,6 +446,7 @@ export class Manager {
             this.tabInfos?.delete(key(window));
             if (!window.deleted) {
                 this.restoreWindow(window, group.saved.get(key(window)));
+                this.giveBorderBack(window);
                 if (group.maximized && window.maximizable) {
                     // Without its tab bar the window is maximized the usual way.
                     window.setMaximize(true, true);
@@ -563,23 +570,20 @@ export class Manager {
         }
         if (group && window === group.active && window.maximizeMode === 3 && !this.applyingMaximize) {
             // KWin maximized the visible tab (its button, a double click, a drag to the top
-            // edge, a shortcut): maximize the group instead, keeping room for the tab bar.
-            // KWin sees a maximized group as not maximized, so the same request on a
-            // maximized group means "restore".
-            if (group.maximized) {
-                // Undone once KWin has finished maximizing (it ignores changes made while
-                // it is still doing it).
-                this.host.later(() => {
-                    if (this.groups.includes(group) && group.active === window && group.maximized) {
-                        this.applyingMaximize = true;
-                        window.setMaximize(false, false);
-                        this.applyingMaximize = false;
-                        this.unmaximizeGroup(group);
-                    }
-                });
-            } else {
-                this.maximizeGroup(group);
-            }
+            // edge, a shortcut). A maximized group is not maximized for KWin (that would
+            // cover the tab bar), so this means "maximize the group", or "restore" when it
+            // already is. Done once KWin has finished (it ignores changes made meanwhile).
+            const restore = group.maximized;
+            this.host.later(() => {
+                if (!this.groups.includes(group) || group.active !== window) {
+                    return;
+                }
+                if (restore) {
+                    this.unmaximizeGroup(group);
+                } else {
+                    this.maximizeGroup(group);
+                }
+            });
             return;
         }
         if (group && window === group.active) {
@@ -590,12 +594,18 @@ export class Manager {
 
     // ---------------------------------------------------------------- maximize
 
-    // A maximized group fills the work area: tab bar at the top, the visible tab below
-    // it. The windows are not maximized for KWin (that would cover the tab bar), so the
-    // apps keep their own title bar.
+    // A maximized group fills the work area: tab bar at the top, the visible tab below it.
+    // KWin does not see the windows as maximized (it would cover the tab bar), so the
+    // script removes the frame KWin draws around them (title bar, borders, rounded
+    // corners); apps that draw their own title bar keep it.
     maximizeGroup(group) {
         if (!group.maximized) {
-            group.restore = group.normal ?? this.defaultRestore(group);
+            // A "normal" geometry that already fills the screen (the window was maximized
+            // before it joined the group) would restore to the same size.
+            const area = this.host.clientArea(group.active);
+            const normal = group.normal;
+            const fills = normal && normal.width * normal.height > 0.9 * area.width * area.height;
+            group.restore = normal && !fills ? normal : this.defaultRestore(group);
         }
         group.maximized = true;
         this.applyMaximized(group);
@@ -606,32 +616,42 @@ export class Manager {
             return;
         }
         group.maximized = false;
-        const restore = this.restoreGeometry(group);
         this.applyingMaximize = true;
-        group.active.frameGeometry = restore;
+        for (const window of group.windows) {
+            this.giveBorderBack(window);
+            if (window.maximizeMode !== 0) {
+                // Requested by a KWin maximize, which left the window marked maximized.
+                window.setMaximize(false, false);
+            }
+        }
+        group.active.frameGeometry = group.restore ?? this.defaultRestore(group);
         this.applyingMaximize = false;
         group.normal = plainRect(group.active.frameGeometry);
         this.syncMembers(group);
         this.changed();
     }
 
+    maximizedRect(group) {
+        const area = this.host.clientArea(group.active);
+        const height = this.host.config().tabBarHeight;
+        return { x: area.x, y: area.y + height, width: area.width, height: area.height - height };
+    }
+
     applyMaximized(group) {
         const active = group.active;
-        const area = this.host.clientArea(active);
-        this.host.debug(`group ${group.id} maximized into ${JSON.stringify(plainRect(area))}`);
-        const height = this.host.config().tabBarHeight - this.host.config().overlap;
+        const rect = this.maximizedRect(group);
+        this.host.debug(`group ${group.id} maximized into ${JSON.stringify(rect)}`);
         this.applyingMaximize = true;
         if (active.maximizeMode !== 0) {
             active.setMaximize(false, false);
         }
-        active.frameGeometry = { x: area.x, y: area.y + height, width: area.width, height: area.height - height };
+        for (const window of group.windows) {
+            this.removeBorder(window);
+        }
+        active.frameGeometry = rect;
         this.applyingMaximize = false;
         this.syncMembers(group);
         this.changed();
-    }
-
-    restoreGeometry(group) {
-        return group.restore ?? this.defaultRestore(group);
     }
 
     defaultRestore(group) {
@@ -639,6 +659,28 @@ export class Manager {
         const width = Math.round(area.width * 0.6);
         const height = Math.round(area.height * 0.7);
         return { x: area.x + (area.width - width) / 2, y: area.y + (area.height - height) / 2, width, height };
+    }
+
+    // Frame drawn by KWin (server-side decoration): removed while the group is maximized.
+    removeBorder(window) {
+        if (!window.noBorder) {
+            if (!this.borderless) {
+                this.borderless = new Set();
+            }
+            this.borderless.add(key(window));
+            window.noBorder = true;
+        }
+    }
+
+    giveBorderBack(window) {
+        if (this.borderless?.delete(key(window)) && !window.deleted) {
+            window.noBorder = false;
+        }
+    }
+
+    // Whether the visible tab has rounded top corners under the bar (for CornerEars).
+    hasRoundedTop(group) {
+        return !(group.maximized && this.borderless?.has(key(group.active)));
     }
 
     // Moving a maximized group restores its size under the cursor (as KWin does for a
@@ -649,20 +691,23 @@ export class Manager {
             return;
         }
         group.maximized = false;
+        this.applyingMaximize = true;
+        for (const member of group.windows) {
+            this.giveBorderBack(member);
+        }
         if (window.move) {
-            const restore = this.restoreGeometry(group);
+            const restore = group.restore ?? this.defaultRestore(group);
             const frame = window.frameGeometry;
             const cursor = this.ws.cursorPos;
             const ratio = frame.width > 0 ? (cursor.x - frame.x) / frame.width : 0.5;
-            this.applyingMaximize = true;
             window.frameGeometry = {
                 x: Math.round(cursor.x - restore.width * ratio),
                 y: frame.y,
                 width: restore.width,
                 height: restore.height,
             };
-            this.applyingMaximize = false;
         }
+        this.applyingMaximize = false;
         this.changed();
     }
 
@@ -712,6 +757,7 @@ export class Manager {
 
     windowGone(window) {
         this.tabInfos?.delete(key(window));
+        this.borderless?.delete(key(window));
         const hook = this.hooks.get(key(window));
         if (hook) {
             this.disconnectAll(hook.connections);
@@ -853,7 +899,7 @@ export class Manager {
     }
 
     isMaximized(group) {
-        return group.maximized || group.active.maximizeMode === 3;
+        return group.maximized;
     }
 
     // ---------------------------------------------------------------- tab names and colors
@@ -897,7 +943,7 @@ export class Manager {
     dump() {
         this.host.log(`${this.groups.length} groups, active window "${this.ws.activeWindow ? this.ws.activeWindow.caption : ""}"`);
         for (const group of this.groups) {
-            this.host.log(`group ${group.id}: maximized=${group.maximized} restore=${JSON.stringify(group.restore ?? null)} bar=${JSON.stringify(this.barRect(group))} shown=${this.isBarShown(group.id)}`);
+            this.host.log(`group ${group.id}: maximized=${group.maximized} bar=${JSON.stringify(this.barRect(group))} shown=${this.isBarShown(group.id)}`);
             for (const w of group.windows) {
                 this.host.log(`  ${w === group.active ? "*" : " "} "${w.caption}" frame=${JSON.stringify(plainRect(w.frameGeometry))} maximizeMode=${w.maximizeMode} minimized=${w.minimized} opacity=${w.opacity}`);
             }

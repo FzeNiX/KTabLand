@@ -24,7 +24,9 @@ PlasmaCore.Window {
 
     CornerEars {
         bar: win
-        active: win.visible && strip.place !== null && !strip.inside
+        // Only where the window below has rounded corners.
+        active: win.visible && strip.place !== null && !strip.inside && strip.group !== null
+            && (win.revision, win.manager.hasRoundedTop(strip.group))
         size: win.config.cornerFill
         color: strip.cornerColor
     }

@@ -20,15 +20,15 @@
         <entry name="BarStyle" type="Int">
             <default>0</default>
         </entry>
-        <!-- Pixels of the window's top edge covered by the tab bar (hides rounded corners) -->
+        <!-- Pixels of the window's top edge covered by the tab bar -->
         <entry name="CornerOverlap" type="Int">
-            <default>6</default>
+            <default>0</default>
             <min>0</min>
             <max>16</max>
         </entry>
-        <!-- Size of the squares filling the window's rounded top corners under the bar -->
+        <!-- Radius of the window's rounded top corners, filled with the bar's color -->
         <entry name="CornerFill" type="Int">
-            <default>6</default>
+            <default>8</default>
             <min>0</min>
             <max>16</max>
         </entry>

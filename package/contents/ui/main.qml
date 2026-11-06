@@ -25,9 +25,9 @@ Item {
             // 0 opaque (color scheme), 1 translucent (Plasma theme, blurred)
             barStyle: Number(KWin.readConfig("BarStyle", 0)),
             // How far the bar covers the top of the window, hiding its rounded corners.
-            overlap: Number(KWin.readConfig("CornerOverlap", 6)),
-            // Size of the squares that fill the window's rounded top corners under the bar.
-            cornerFill: Number(KWin.readConfig("CornerFill", 6)),
+            overlap: Number(KWin.readConfig("CornerOverlap", 0)),
+            // Radius of the window's rounded top corners, which the bar's color wraps around.
+            cornerFill: Number(KWin.readConfig("CornerFill", 8)),
             debug: Boolean(KWin.readConfig("Debug", false)),
         };
     }

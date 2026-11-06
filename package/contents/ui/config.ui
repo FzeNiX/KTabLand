@@ -72,17 +72,17 @@
     </widget>
    </item>
    <item row="6" column="0">
-    <widget class="QLabel" name="overlapLabel">
-     <property name="text"><string>Cover window corners:</string></property>
-     <property name="buddy"><cstring>kcfg_CornerOverlap</cstring></property>
+    <widget class="QLabel" name="cornerLabel">
+     <property name="text"><string>Window corner radius:</string></property>
+     <property name="buddy"><cstring>kcfg_CornerFill</cstring></property>
     </widget>
    </item>
    <item row="6" column="1">
-    <widget class="QSpinBox" name="kcfg_CornerOverlap">
+    <widget class="QSpinBox" name="kcfg_CornerFill">
      <property name="suffix"><string> px</string></property>
      <property name="minimum"><number>0</number></property>
      <property name="maximum"><number>16</number></property>
-     <property name="toolTip"><string>How much of the window's top edge the tab bar covers, to hide its rounded corners.</string></property>
+     <property name="toolTip"><string>The tab bar's color wraps around the rounded top corners of the window below it. Set it to the corner radius of your window decoration (0 to turn it off).</string></property>
     </widget>
    </item>
    <item row="7" column="1">

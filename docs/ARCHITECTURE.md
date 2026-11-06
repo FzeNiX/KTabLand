@@ -58,9 +58,18 @@ keyboard focus, so clicking a tab does not steal focus from the app.
 
 ## Maximized groups
 
-KWin's maximize would cover the tab bar, so a group is maximized by the script: the visible tab is
-unmaximized and placed in the work area below a full-width tab bar (`Manager.maximizeGroup`). Any KWin
-maximize of the visible tab (app button, double click, drag to the top edge, shortcut) is turned into a
-group maximize, or into a restore when the group is already maximized (KWin sees it as not maximized);
-the restore runs after KWin has finished its own maximize (`host.later`). Moving a maximized group
-restores its size under the cursor; when a maximized group ends, its windows are maximized by KWin.
+KWin's maximize would cover the tab bar, and KWin drops the maximized state as soon as a
+script changes the geometry of a maximized window. So a group is maximized by the script: the
+visible tab is placed in the work area below a full-width tab bar (`Manager.maximizeGroup`), and
+the frame KWin draws around server-side decorated windows (title bar, borders, rounded corners)
+is removed meanwhile (`noBorder`), so the app sits flush under the tab bar. Apps that draw their
+own title bar (Chrome, GTK, Electron) keep it.
+
+Any KWin maximize of the visible tab (app button, double click, drag to the top edge, shortcut)
+becomes a group maximize, or a restore when the group is already maximized (KWin sees it as not
+maximized). That runs after KWin has finished its own maximize (`host.later`): KWin ignores
+geometry changes made while it is maximizing.
+
+Above a window that is not maximized, `CornerEars.qml` paints the bar's color around the
+window's rounded top corners (a square with a quarter circle cut out) so that the bar and the
+window look like one frame.
