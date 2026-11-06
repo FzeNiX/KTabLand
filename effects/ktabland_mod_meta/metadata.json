@@ -3,11 +3,11 @@
     "KPlugin": {
         "Authors": [{ "Name": "FzeNiX" }],
         "Category": "Tools",
-        "Description": "Internal flag of the United Sets X KWin script: loaded while Shift is held",
+        "Description": "Internal flag of the KTabLand KWin script: loaded while Meta is held",
         "EnabledByDefault": false,
-        "Id": "unitedsetsx_mod_shift",
+        "Id": "ktabland_mod_meta",
         "License": "MIT",
-        "Name": "United Sets X flag: Shift",
+        "Name": "KTabLand flag: Meta",
         "Version": "0.1.0"
     },
     "X-KWin-Internal": true,

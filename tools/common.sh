@@ -1,12 +1,12 @@
 # Shared settings for the tools/ scripts. Source it, don't run it.
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SCRIPT_ID="unitedsetsx"
-EFFECT_IDS=(unitedsetsx_modwatch unitedsetsx_mod_shift unitedsetsx_mod_ctrl unitedsetsx_mod_alt unitedsetsx_mod_meta)
+SCRIPT_ID="ktabland"
+EFFECT_IDS=(ktabland_modwatch ktabland_mod_shift ktabland_mod_ctrl ktabland_mod_alt ktabland_mod_meta)
 
 # Nested KWin sandbox: its own config and data folders, its own D-Bus session.
 NESTED_DIR="$REPO_DIR/.nested"
-NESTED_SOCKET="wayland-unitedsetsx"
+NESTED_SOCKET="wayland-ktabland"
 
 QDBUS="$(command -v qdbus6 || command -v qdbus)"
 

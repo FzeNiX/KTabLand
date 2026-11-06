@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Window groups ("sets") of United Sets X.
+// Window groups ("sets") of KTabLand.
 //
 // A group shows only its active window. The other members stay at the same geometry,
 // are made fully transparent, are kept directly below the active window

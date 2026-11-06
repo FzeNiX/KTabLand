@@ -14,7 +14,7 @@ PlasmaCore.Window {
     property var config: ({})
 
     flags: Qt.FramelessWindowHint | Qt.BypassWindowManagerHint
-    title: "United Sets X tab bar"
+    title: "KTabLand tab bar"
     backgroundHints: PlasmaCore.Window.StandardBackground
     x: strip.place ? Math.round(strip.place.x) : 0
     y: strip.place ? Math.round(strip.place.y) : 0
@@ -31,7 +31,7 @@ PlasmaCore.Window {
         color: strip.cornerColor
     }
 
-    onVisibleChanged: if (config.debug) console.info("UnitedSetsX: bar", groupId, "visible", visible, x, y, width, height, "translucent", strip.width, strip.height, strip.buttonSize)
+    onVisibleChanged: if (config.debug) console.info("KTabLand: bar", groupId, "visible", visible, x, y, width, height, "translucent", strip.width, strip.height, strip.buttonSize)
 
     // Not the mainItem: the bar uses the whole window, not only the inside of the Plasma
     // frame (its padding would leave too little height for the tabs).

@@ -3,11 +3,11 @@
     "KPlugin": {
         "Authors": [{ "Name": "FzeNiX" }],
         "Category": "Tools",
-        "Description": "Internal flag of the United Sets X KWin script: loaded while Ctrl is held",
+        "Description": "Internal flag of the KTabLand KWin script: loaded while Shift is held",
         "EnabledByDefault": false,
-        "Id": "unitedsetsx_mod_ctrl",
+        "Id": "ktabland_mod_shift",
         "License": "MIT",
-        "Name": "United Sets X flag: Ctrl",
+        "Name": "KTabLand flag: Shift",
         "Version": "0.1.0"
     },
     "X-KWin-Internal": true,

@@ -1,19 +1,19 @@
 # Architecture
 
 On Wayland only the compositor can move, resize, hide or watch the windows of other applications, so
-United Sets X runs inside KWin as a **declarative KWin script** (QML + JavaScript, stable public API, no
+KTabLand runs inside KWin as a **declarative KWin script** (QML + JavaScript, stable public API, no
 C++ build, no dependency on KWin's internal ABI).
 
 ```
-package/                     KWin/Script "unitedsetsx"
+package/                     KWin/Script "ktabland"
   contents/code/core.mjs     group model and window management (no QML)
   contents/ui/main.qml       wiring: KWin signals, shortcuts, D-Bus, one TabBar per group
   contents/ui/TabBar.qml     tab bar (KWin internal window placed above the group)
   contents/ui/DropHighlight.qml
   contents/config/main.xml + contents/ui/config.ui   settings page (KWin Scripts KCM)
 effects/
-  unitedsetsx_modwatch       scripted effect: reports held modifier keys
-  unitedsetsx_mod_*          empty "flag" effects
+  ktabland_modwatch       scripted effect: reports held modifier keys
+  ktabland_mod_*          empty "flag" effects
 ```
 
 ## Hiding tabs
@@ -40,10 +40,10 @@ and out of the taskbar by a previous instance (crash, kill) are shown again.
 KWin scripts cannot read the keyboard. Scripted effects can (`effects.mouseChanged` carries the keyboard
 modifiers) but cannot talk to scripts. So:
 
-1. When a window move starts, the script loads the `unitedsetsx_modwatch` effect over D-Bus
+1. When a window move starts, the script loads the `ktabland_modwatch` effect over D-Bus
    (`org.kde.kwin.Effects.loadEffect`, a no-op when already loaded).
-2. The effect loads `unitedsetsx_mod_<key>` while that modifier is held and unloads it on release.
-3. During the move the script polls `org.kde.kwin.Effects.isEffectLoaded("unitedsetsx_mod_<key>")` every
+2. The effect loads `ktabland_mod_<key>` while that modifier is held and unloads it on release.
+3. During the move the script polls `org.kde.kwin.Effects.isEffectLoaded("ktabland_mod_<key>")` every
    40 ms and computes the drop target under the cursor (`Workspace.windowAt`).
 
 All these effects are marked `X-KWin-Internal` (not listed in Desktop Effects) and are never enabled in

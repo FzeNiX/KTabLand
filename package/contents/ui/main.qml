@@ -12,9 +12,9 @@ Item {
     property var manager: null
     property var config: readSettings()
 
-    // Flag effects loaded by the unitedsetsx_modwatch effect while a modifier is held,
+    // Flag effects loaded by the ktabland_modwatch effect while a modifier is held,
     // indexed like the GroupModifier setting.
-    readonly property var modifierFlags: ["unitedsetsx_mod_shift", "unitedsetsx_mod_ctrl", "unitedsetsx_mod_alt", "unitedsetsx_mod_meta"]
+    readonly property var modifierFlags: ["ktabland_mod_shift", "ktabland_mod_ctrl", "ktabland_mod_alt", "ktabland_mod_meta"]
 
     function readSettings() {
         return {
@@ -40,7 +40,7 @@ Item {
     }
 
     function log(message) {
-        console.info("UnitedSetsX:", message);
+        console.info("KTabLand:", message);
     }
 
     ListModel {
@@ -100,7 +100,7 @@ Item {
         path: "/Effects"
         dbusInterface: "org.kde.kwin.Effects"
         method: "loadEffect"
-        arguments: ["unitedsetsx_modwatch"]
+        arguments: ["ktabland_modwatch"]
     }
 
     DBusCall {
@@ -127,36 +127,36 @@ Item {
     }
 
     ShortcutHandler {
-        name: "UnitedSetsX Next Tab"
-        text: "United Sets X: Next tab"
+        name: "KTabLand Next Tab"
+        text: "KTabLand: Next tab"
         sequence: "Meta+`"
         onActivated: root.manager.cycle(1)
     }
 
     ShortcutHandler {
-        name: "UnitedSetsX Previous Tab"
-        text: "United Sets X: Previous tab"
+        name: "KTabLand Previous Tab"
+        text: "KTabLand: Previous tab"
         sequence: "Meta+~"
         onActivated: root.manager.cycle(-1)
     }
 
     ShortcutHandler {
-        name: "UnitedSetsX Group With Window Below"
-        text: "United Sets X: Group the active window with the window under it"
+        name: "KTabLand Group With Window Below"
+        text: "KTabLand: Group the active window with the window under it"
         sequence: ""
         onActivated: root.manager.groupActiveWithBelow()
     }
 
     ShortcutHandler {
-        name: "UnitedSetsX Release Tab"
-        text: "United Sets X: Release the active tab from its group"
+        name: "KTabLand Release Tab"
+        text: "KTabLand: Release the active tab from its group"
         sequence: ""
         onActivated: root.manager.detachActive()
     }
 
     ShortcutHandler {
-        name: "UnitedSetsX Tab Options"
-        text: "United Sets X: Name and color of the active tab"
+        name: "KTabLand Tab Options"
+        text: "KTabLand: Name and color of the active tab"
         sequence: ""
         onActivated: {
             const window = Workspace.activeWindow;
@@ -167,8 +167,8 @@ Item {
     }
 
     ShortcutHandler {
-        name: "UnitedSetsX Debug Dump"
-        text: "United Sets X: Print the groups to the log (debug)"
+        name: "KTabLand Debug Dump"
+        text: "KTabLand: Print the groups to the log (debug)"
         sequence: ""
         onActivated: root.manager.dump()
     }

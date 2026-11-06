@@ -13,7 +13,7 @@ Window {
 
     flags: Qt.FramelessWindowHint | Qt.BypassWindowManagerHint
     color: "transparent"
-    title: "United Sets X tab bar"
+    title: "KTabLand tab bar"
     x: strip.place ? Math.round(strip.place.x) : 0
     y: strip.place ? Math.round(strip.place.y) : 0
     width: strip.place ? Math.max(1, Math.round(strip.place.width)) : 1
@@ -29,7 +29,7 @@ Window {
         color: strip.cornerColor
     }
 
-    onVisibleChanged: if (config.debug) console.info("UnitedSetsX: bar", groupId, "visible", visible, x, y, width, height, "solid", strip.width, strip.height, strip.buttonSize)
+    onVisibleChanged: if (config.debug) console.info("KTabLand: bar", groupId, "visible", visible, x, y, width, height, "solid", strip.width, strip.height, strip.buttonSize)
 
     TabBar {
         id: strip

@@ -3,11 +3,11 @@
     "KPlugin": {
         "Authors": [{ "Name": "FzeNiX" }],
         "Category": "Tools",
-        "Description": "Internal helper of the United Sets X KWin script: reports held modifier keys",
+        "Description": "Internal helper of the KTabLand KWin script: reports held modifier keys",
         "EnabledByDefault": false,
-        "Id": "unitedsetsx_modwatch",
+        "Id": "ktabland_modwatch",
         "License": "MIT",
-        "Name": "United Sets X modifier watcher",
+        "Name": "KTabLand modifier watcher",
         "Version": "0.1.0"
     },
     "X-KWin-Internal": true,

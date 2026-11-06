@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UnitedSetsXConfig</class>
- <widget class="QWidget" name="UnitedSetsXConfig">
+ <class>KTabLandConfig</class>
+ <widget class="QWidget" name="KTabLandConfig">
   <layout class="QFormLayout" name="form">
    <item row="0" column="0">
     <widget class="QLabel" name="modifierLabel">
@@ -93,7 +93,7 @@
    </item>
    <item row="8" column="1">
     <widget class="QLabel" name="shortcutHint">
-     <property name="text"><string>Shortcuts (next / previous tab...) are in System Settings › Keyboard › Shortcuts › KWin, under "United Sets X".</string></property>
+     <property name="text"><string>Shortcuts (next / previous tab...) are in System Settings › Keyboard › Shortcuts › KWin, under "KTabLand".</string></property>
      <property name="wordWrap"><bool>true</bool></property>
     </widget>
    </item>

@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 //
 // KWin scripts cannot read the keyboard, scripted effects can. While a modifier
-// is held, the matching flag effect "unitedsetsx_mod_<key>" is loaded; the
-// United Sets X script asks KWin over D-Bus (org.kde.kwin.Effects.isEffectLoaded)
+// is held, the matching flag effect "ktabland_mod_<key>" is loaded; the
+// KTabLand script asks KWin over D-Bus (org.kde.kwin.Effects.isEffectLoaded)
 // whether it is. The flag effects themselves do nothing.
 
 const flags = [
-    { mask: 0x02000000, name: "unitedsetsx_mod_shift" }, // Qt::ShiftModifier
-    { mask: 0x04000000, name: "unitedsetsx_mod_ctrl" },  // Qt::ControlModifier
-    { mask: 0x08000000, name: "unitedsetsx_mod_alt" },   // Qt::AltModifier
-    { mask: 0x10000000, name: "unitedsetsx_mod_meta" },  // Qt::MetaModifier
+    { mask: 0x02000000, name: "ktabland_mod_shift" }, // Qt::ShiftModifier
+    { mask: 0x04000000, name: "ktabland_mod_ctrl" },  // Qt::ControlModifier
+    { mask: 0x08000000, name: "ktabland_mod_alt" },   // Qt::AltModifier
+    { mask: 0x10000000, name: "ktabland_mod_meta" },  // Qt::MetaModifier
 ];
 
 let held = 0;

@@ -21,7 +21,7 @@ Window {
 
     flags: Qt.FramelessWindowHint | Qt.BypassWindowManagerHint | Qt.WindowTransparentForInput
     color: "transparent"
-    title: "United Sets X drop highlight"
+    title: "KTabLand drop highlight"
     visible: false
 
     Rectangle {

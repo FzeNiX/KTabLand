@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stops United Sets X (every hidden window is shown again), then removes it.
+# Stops KTabLand (every hidden window is shown again), then removes it.
 #   tools/uninstall.sh [--nested]
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
@@ -13,4 +13,4 @@ for id in "${EFFECT_IDS[@]}"; do
 done
 kpackagetool6 --type KWin/Script --remove "$SCRIPT_ID" >/dev/null 2>&1 || true
 kwin_dbus /KWin org.kde.KWin.reconfigure >/dev/null
-echo "United Sets X is removed ($TARGET)."
+echo "KTabLand is removed ($TARGET)."

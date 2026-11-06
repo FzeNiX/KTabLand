@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Starts a nested KWin in a window of the current Plasma Wayland session, with its own
 # D-Bus session, config folder and data folder (all under .nested/), so testing never
-# touches the real session. Then installs and enables United Sets X in it.
+# touches the real session. Then installs and enables KTabLand in it.
 #
 #   tools/nested.sh            start (WIDTH, HEIGHT, SCALE env vars are honoured)
 #   tools/nested.sh stop       stop it
@@ -84,7 +84,7 @@ done
 
 use_target --nested
 if [[ "$(kwin_dbus /Scripting org.kde.kwin.Scripting.isScriptLoaded "$SCRIPT_ID")" == "true" ]]; then
-    echo "United Sets X is running (nested)."
+    echo "KTabLand is running (nested)."
 else
     echo "warning: KWin did not load the script, see $NESTED_DIR/kwin.log" >&2
 fi

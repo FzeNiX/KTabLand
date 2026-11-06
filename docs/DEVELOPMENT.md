@@ -17,16 +17,16 @@ tools/nested.sh stop             # tắt KWin lồng
 ```
 
 KWin lồng có D-Bus, thư mục config, data và cache riêng trong `.nested/`, nên không đụng tới phiên đang
-dùng. Lệnh `stop` chỉ kill tiến trình `kwin_wayland` có `--socket wayland-unitedsetsx`.
+dùng. Lệnh `stop` chỉ kill tiến trình `kwin_wayland` có `--socket wayland-ktabland`.
 
 Gọi phím tắt của script trong KWin lồng mà không cần bàn phím:
 
 ```bash
 tools/nested-run.sh qdbus6 org.kde.kglobalaccel /component/kwin \
-    org.kde.kglobalaccel.Component.invokeShortcut "UnitedSetsX Group With Window Below"
+    org.kde.kglobalaccel.Component.invokeShortcut "KTabLand Group With Window Below"
 ```
 
-(Tên khác: `UnitedSetsX Next Tab`, `UnitedSetsX Previous Tab`, `UnitedSetsX Release Tab`.)
+(Tên khác: `KTabLand Next Tab`, `KTabLand Previous Tab`, `KTabLand Release Tab`.)
 
 Chụp màn hình KWin lồng: `tools/nested-run.sh spectacle -b -n -f -o /đường/dẫn/ảnh.png`
 
@@ -40,16 +40,16 @@ tools/logs.sh           # journalctl --user -u plasma-kwin_wayland.service, lọ
 
 Lưu ý: KWin cache file QML của script, nên sau khi nâng cấp code trong phiên thật cần đăng xuất / đăng
 nhập lại để code mới có hiệu lực. Bật log chi tiết:
-`kwriteconfig6 --file kwinrc --group Script-unitedsetsx --key Debug true` rồi
+`kwriteconfig6 --file kwinrc --group Script-ktabland --key Debug true` rồi
 `qdbus6 org.kde.KWin /KWin reconfigure`.
 
 ## Lệnh D-Bus hữu ích
 
 ```bash
-qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.isScriptLoaded unitedsetsx
-qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.unloadScript unitedsetsx   # dừng (trả lại cửa sổ)
+qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.isScriptLoaded ktabland
+qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.unloadScript ktabland   # dừng (trả lại cửa sổ)
 qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.start                      # nạp các script đang bật
-qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.isEffectLoaded unitedsetsx_mod_ctrl
+qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.isEffectLoaded ktabland_mod_ctrl
 ```
 
 ## Bài học

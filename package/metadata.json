@@ -7,11 +7,11 @@
         "Description[vi]": "Gộp cửa sổ thành tab: giữ một phím (mặc định Ctrl) rồi kéo cửa sổ thả lên cửa sổ khác",
         "EnabledByDefault": false,
         "Icon": "tab-new",
-        "Id": "unitedsetsx",
+        "Id": "ktabland",
         "License": "MIT",
-        "Name": "United Sets X",
+        "Name": "KTabLand",
         "Version": "0.1.0",
-        "Website": "https://github.com/FzeNiX/UnitedSetsX-KDE"
+        "Website": "https://github.com/FzeNiX/KTabLand"
     },
     "X-KDE-ConfigModule": "kwin/effects/configs/kcm_kwin4_genericscripted",
     "X-Plasma-API": "declarativescript",

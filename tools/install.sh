@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs (or upgrades) United Sets X and (re)starts it in KWin.
+# Installs (or upgrades) KTabLand and (re)starts it in KWin.
 #   tools/install.sh            into the current Plasma session (~/.local/share/kwin/...)
 #   tools/install.sh --nested   into the nested KWin started by tools/nested.sh
 set -euo pipefail
@@ -34,7 +34,7 @@ install_pkg KWin/Script "$REPO_DIR/package"
 kwriteconfig6 --file kwinrc --group Plugins --key "${SCRIPT_ID}Enabled" true
 kwin_dbus /Scripting org.kde.kwin.Scripting.start >/dev/null
 if [[ "$(kwin_dbus /Scripting org.kde.kwin.Scripting.isScriptLoaded "$SCRIPT_ID")" == "true" ]]; then
-    echo "United Sets X is installed and running ($TARGET)."
+    echo "KTabLand is installed and running ($TARGET)."
 else
     die "installed, but KWin did not load the script; check the log (tools/logs.sh $*)"
 fi

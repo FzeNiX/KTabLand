@@ -1,10 +1,11 @@
-# United Sets X for KDE Plasma
+# KTabLand
 
-**Group any windows into tabs on KDE Plasma 6 — hold <kbd>Ctrl</kbd> and drag one window onto another.**
+**Window tabs for KDE Plasma 6 — hold <kbd>Ctrl</kbd> and drag one window onto another to group them.**
 
-The KDE Plasma counterpart of [United Sets X](https://github.com/FzeNiX/UnitedSetsX) for Windows. It is a
-KWin script, so it works on Wayland and with XWayland apps, for any application (also the ones that draw
-their own title bar, like Chrome, Firefox or GTK apps).
+KTabLand turns windows of any applications into tabs of a single window, like a web browser. It is a KWin
+script, so it works on Wayland and with XWayland apps, for any application (also the ones that draw their
+own title bar, like Chrome, Firefox or GTK apps). Inspired by Groupy and by
+[United Sets X](https://github.com/FzeNiX/UnitedSetsX), the author's tabbing app for Windows.
 
 > Status: early MVP (0.1). Tested on Kubuntu 26.04, Plasma / KWin 6.6.6, Qt 6.10.
 
@@ -33,12 +34,12 @@ layout. Shift can still be chosen; then KWin's tile preview shows too.
 ## Install
 
 ```bash
-git clone https://github.com/FzeNiX/UnitedSetsX-KDE.git
-cd UnitedSetsX-KDE
+git clone https://github.com/FzeNiX/KTabLand.git
+cd KTabLand
 tools/install.sh
 ```
 
-Settings: System Settings › Window Management › KWin Scripts › United Sets X › configure.
+Settings: System Settings › Window Management › KWin Scripts › KTabLand › configure.
 Remove with `tools/uninstall.sh` (every grouped window is given back first).
 
 ## Known limitations

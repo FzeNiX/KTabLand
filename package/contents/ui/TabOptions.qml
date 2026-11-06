@@ -47,11 +47,11 @@ Window {
 
     flags: Qt.Popup | Qt.FramelessWindowHint
     color: "transparent"
-    title: "United Sets X tab options"
+    title: "KTabLand tab options"
     width: Kirigami.Units.gridUnit * 20
     height: card.implicitHeight + 2 * Kirigami.Units.largeSpacing
     visible: false
-    onVisibleChanged: if (manager && manager.host.config().debug) console.info("UnitedSetsX: tab options popup visible", visible, x, y, width, height)
+    onVisibleChanged: if (manager && manager.host.config().debug) console.info("KTabLand: tab options popup visible", visible, x, y, width, height)
 
     Rectangle {
         anchors.fill: parent

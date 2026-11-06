@@ -16,7 +16,7 @@ QtObject {
 
     property Window left: Window {
         flags: Qt.FramelessWindowHint | Qt.BypassWindowManagerHint | Qt.WindowTransparentForInput
-        title: "United Sets X tab bar corner"
+        title: "KTabLand tab bar corner"
         color: "transparent"
         x: ears.bar ? ears.bar.x : 0
         y: ears.bar ? ears.bar.y + ears.bar.height : 0
@@ -40,7 +40,7 @@ QtObject {
 
     property Window right: Window {
         flags: Qt.FramelessWindowHint | Qt.BypassWindowManagerHint | Qt.WindowTransparentForInput
-        title: "United Sets X tab bar corner"
+        title: "KTabLand tab bar corner"
         color: "transparent"
         x: ears.bar ? ears.bar.x + ears.bar.width - ears.size : 0
         y: ears.bar ? ears.bar.y + ears.bar.height : 0
