@@ -31,11 +31,14 @@ Item {
     // group, and minimize / maximize buttons. Over a maximized window (the app's own
     // title bar and buttons are there) it only holds the tabs.
     readonly property real buttonSize: Math.max(16, Math.min(height, config.tabBarHeight) - 8)
+    // Width of one button column: Breeze's default button spacing (46 px at 10 pt), so
+    // that the group's buttons sit right above the app's.
+    readonly property real buttonColumn: Math.round(Kirigami.Units.gridUnit * 2.55)
     // Color of the squares filling the window's corners under the bar (CornerEars).
     readonly property color cornerColor: translucent
         ? Qt.rgba(content.Kirigami.Theme.backgroundColor.r, content.Kirigami.Theme.backgroundColor.g, content.Kirigami.Theme.backgroundColor.b, 0.85)
         : content.Kirigami.Theme.backgroundColor
-    readonly property real controlsWidth: inside ? 0 : Kirigami.Units.gridUnit * 3 + 3 * (buttonSize + Kirigami.Units.smallSpacing)
+    readonly property real controlsWidth: inside ? 0 : Kirigami.Units.gridUnit * 3 + 3 * buttonColumn
     readonly property real tabWidth: windows.length > 0
         ? Math.max(0, Math.min(config.tabWidth, (width - 2 * Kirigami.Units.smallSpacing - controlsWidth) / windows.length)) : 0
 
@@ -217,7 +220,8 @@ Item {
                             } else if (mouse.button === Qt.MiddleButton) {
                                 bar.manager.closeTab(tab.modelData);
                             } else if (mouse.button === Qt.RightButton) {
-                                bar.manager.openTabOptions(tab.modelData);
+                                const p = tab.mapToItem(null, 0, tab.height);
+                                bar.manager.openTabOptions(tab.modelData, { x: bar.hostWindow.x + p.x, y: bar.hostWindow.y + p.y }, bar.hostWindow);
                             } else {
                                 bar.manager.activate(bar.group, tab.modelData);
                             }
@@ -280,26 +284,33 @@ Item {
             id: controls
             visible: !bar.inside
             anchors.right: parent.right
-            anchors.rightMargin: Kirigami.Units.smallSpacing
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: Kirigami.Units.smallSpacing
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            spacing: 0
 
-            // Drawn like Breeze's own title bar buttons (icon themes often have arrows).
-            component BarButton: Rectangle {
+            // Drawn like Breeze's own title bar buttons (icon themes often have arrows),
+            // in columns as wide as Breeze's, so they line up with the app's buttons below.
+            component BarButton: Item {
                 id: button
                 signal clicked()
                 default property alias glyph: glyphArea.data
-                width: bar.buttonSize
-                height: bar.buttonSize
-                radius: width / 2
                 property bool danger: false
                 readonly property bool hovered: buttonMouse.containsMouse
-                color: {
-                    if (danger && (buttonMouse.containsMouse || buttonMouse.pressed)) {
-                        return buttonMouse.pressed ? Qt.darker(Kirigami.Theme.negativeTextColor, 1.2) : Kirigami.Theme.negativeTextColor;
+                width: bar.buttonColumn
+                height: parent.height
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: bar.buttonSize
+                    height: bar.buttonSize
+                    radius: width / 2
+                    color: {
+                        if (button.danger && (buttonMouse.containsMouse || buttonMouse.pressed)) {
+                            return buttonMouse.pressed ? Qt.darker(Kirigami.Theme.negativeTextColor, 1.2) : Kirigami.Theme.negativeTextColor;
+                        }
+                        const c = Kirigami.Theme.textColor;
+                        return Qt.rgba(c.r, c.g, c.b, buttonMouse.pressed ? 0.2 : buttonMouse.containsMouse ? 0.1 : 0);
                     }
-                    const c = Kirigami.Theme.textColor;
-                    return Qt.rgba(c.r, c.g, c.b, buttonMouse.pressed ? 0.2 : buttonMouse.containsMouse ? 0.1 : 0);
                 }
                 Item {
                     id: glyphArea

@@ -62,8 +62,10 @@ KWin's maximize would cover the tab bar, and KWin drops the maximized state as s
 script changes the geometry of a maximized window. So a group is maximized by the script: the
 visible tab is placed in the work area below a full-width tab bar (`Manager.maximizeGroup`), and
 the frame KWin draws around server-side decorated windows (title bar, borders, rounded corners)
-is removed meanwhile (`noBorder`), so the app sits flush under the tab bar. Apps that draw their
-own title bar (Chrome, GTK, Electron) keep it.
+is removed meanwhile (`noBorder`), so the app sits flush under the tab bar. The windows are also put
+in the screen's root tile (`Workspace.rootTile(...).manage()`): KWin then tells apps that draw their
+own frame (Chrome, GTK, Electron) that they are tiled on all edges, and they drop their rounded
+corners, shadows and resize borders. Changing the geometry of a tiled window keeps it tiled.
 
 Any KWin maximize of the visible tab (app button, double click, drag to the top edge, shortcut)
 becomes a group maximize, or a restore when the group is already maximized (KWin sees it as not
@@ -73,3 +75,10 @@ geometry changes made while it is maximizing.
 Above a window that is not maximized, `CornerEars.qml` paints the bar's color around the
 window's rounded top corners (a square with a quarter circle cut out) so that the bar and the
 window look like one frame.
+
+## Tab name and color popup
+
+KWin gives the keyboard only to internal windows that are popups (`Qt.Popup`, see
+`PopupInputFilter`), and closes them when the user clicks elsewhere. Qt shows such a popup only
+when it has a transient parent: the group's tab bar window. A `SceneEffect` declared in a script
+cannot be used for this: it is not registered in KWin's effect chain, so it is never painted.

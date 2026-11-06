@@ -47,7 +47,20 @@ Item {
         id: groupModel
     }
 
+    // The tab bar window of a group (to attach popups to it).
+    function barWindow(groupId) {
+        const bars = root.config.barStyle === 1 ? translucentBars : solidBars;
+        for (let i = 0; i < bars.count; i++) {
+            const bar = bars.objectAt(i);
+            if (bar && bar.groupId === groupId) {
+                return bar;
+            }
+        }
+        return null;
+    }
+
     Instantiator {
+        id: solidBars
         model: groupModel
         active: root.config.barStyle !== 1
         delegate: SolidBar {
@@ -60,6 +73,7 @@ Item {
     }
 
     Instantiator {
+        id: translucentBars
         model: groupModel
         active: root.config.barStyle === 1
         delegate: TranslucentBar {
@@ -147,7 +161,7 @@ Item {
         onActivated: {
             const window = Workspace.activeWindow;
             if (window && root.manager.groupOf(window)) {
-                root.manager.openTabOptions(window);
+                root.manager.openTabOptions(window, null, root.barWindow(root.manager.groupOf(window).id));
             }
         }
     }
@@ -176,7 +190,13 @@ Item {
             config: () => root.config,
             changed: () => Qt.callLater(root.bump),
             later: (fn) => Qt.callLater(fn),
-            openTabOptions: (window) => tabOptions.open(window),
+            openTabOptions: (window, position, parentWindow) => {
+                try {
+                    tabOptions.open(window, position, parentWindow);
+                } catch (e) {
+                    root.log("cannot open the tab options: " + e);
+                }
+            },
             groupAdded: (id) => groupModel.append({ gid: id }),
             groupRemoved: (id) => {
                 for (let i = 0; i < groupModel.count; i++) {

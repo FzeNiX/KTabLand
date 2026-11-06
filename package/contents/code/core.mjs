@@ -54,7 +54,7 @@ export class Manager {
     //   dragStarted(), dragEnded()     a window move began / ended (host polls the modifier)
     //   highlight(rect | null)         show / hide the drop highlight
     //   later(fn)                      runs fn after the current KWin event
-    //   openTabOptions(window)         shows the tab name / color dialog
+    //   openTabOptions(window, pos)    shows the tab name / color popup at pos
     //   log(message), debug(message)   debug() prints only with Debug=true in the config
     // }
     constructor(host) {
@@ -551,6 +551,16 @@ export class Manager {
 
     geometryChanged(window) {
         const group = this.groupOf(window);
+        if (group && window === group.active && group.maximized && !this.applyingMaximize
+            && !window.move && !window.resize && window.frameGeometry.y < this.maximizedRect(group).y - 1) {
+            // KWin put the window back over the tab bar (its tile was laid out again, a
+            // screen or panel changed): move it below the bar again.
+            this.host.later(() => {
+                if (this.groups.includes(group) && group.maximized) {
+                    this.applyMaximized(group);
+                }
+            });
+        }
         if (group && window === group.active && !group.maximized && window.maximizeMode === 0
             && !this.applyingMaximize) {
             group.normal = plainRect(window.frameGeometry);
@@ -661,14 +671,25 @@ export class Manager {
         return { x: area.x + (area.width - width) / 2, y: area.y + (area.height - height) / 2, width, height };
     }
 
-    // Frame drawn by KWin (server-side decoration): removed while the group is maximized.
+    // While its group is maximized, a window must look maximized although KWin does not
+    // see it so: the frame KWin draws (server-side decoration) is removed, and the window
+    // is put in the screen's root tile, so that apps drawing their own frame (Chrome,
+    // GTK...) are told they are tiled on all edges and drop their rounded corners,
+    // shadows and resize borders.
     removeBorder(window) {
+        if (!this.borderless) {
+            this.borderless = new Set();
+            this.tiled = new Set();
+        }
         if (!window.noBorder) {
-            if (!this.borderless) {
-                this.borderless = new Set();
-            }
             this.borderless.add(key(window));
             window.noBorder = true;
+        }
+        if (!this.tiled.has(key(window)) && typeof this.ws.rootTile === "function") {
+            const tile = this.ws.rootTile(window.output, this.ws.currentDesktop);
+            if (tile && tile.manage(window)) {
+                this.tiled.add(key(window));
+            }
         }
     }
 
@@ -676,11 +697,15 @@ export class Manager {
         if (this.borderless?.delete(key(window)) && !window.deleted) {
             window.noBorder = false;
         }
+        if (this.tiled?.delete(key(window)) && !window.deleted && window.tile) {
+            window.tile.unmanage(window);
+        }
     }
 
     // Whether the visible tab has rounded top corners under the bar (for CornerEars).
     hasRoundedTop(group) {
-        return !(group.maximized && this.borderless?.has(key(group.active)));
+        const id = key(group.active);
+        return !(group.maximized && (this.borderless?.has(id) || this.tiled?.has(id)));
     }
 
     // Moving a maximized group restores its size under the cursor (as KWin does for a
@@ -758,6 +783,7 @@ export class Manager {
     windowGone(window) {
         this.tabInfos?.delete(key(window));
         this.borderless?.delete(key(window));
+        this.tiled?.delete(key(window));
         const hook = this.hooks.get(key(window));
         if (hook) {
             this.disconnectAll(hook.connections);
@@ -921,8 +947,14 @@ export class Manager {
         this.changed();
     }
 
-    openTabOptions(window) {
-        this.host.openTabOptions(window);
+    // `position`: global point under the tab; by default under the group's tab bar.
+    openTabOptions(window, position, parentWindow) {
+        const group = this.groupOf(window);
+        if (!position && group) {
+            const bar = this.barRect(group);
+            position = { x: bar.x, y: bar.y + bar.height };
+        }
+        this.host.openTabOptions(window, position ?? this.ws.cursorPos, parentWindow);
     }
 
     tabLabel(window) {

@@ -1,27 +1,36 @@
 // SPDX-License-Identifier: MIT
 import QtQuick
+import QtQuick.Window
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.kwin as KWinComponents
 
-// Name and color of a tab. KWin gives no keyboard to the tab bar windows, so this is a
-// scene effect (like Overview): a dimmed screen with a small card that takes typing.
-KWinComponents.SceneEffect {
-    id: effect
+// Name and color of a tab, shown under the tab that was right clicked. KWin gives the
+// keyboard only to its internal windows that are popups (Qt.Popup), and closes a popup
+// when the user clicks elsewhere.
+Window {
+    id: popup
 
     property var manager: null
     property var window: null
-    property var screen: null
-    property string color: ""
+    property string tabColor: ""
 
     readonly property var palette: ["", "#e5484d", "#f76b15", "#ffc53d", "#46a758", "#12a594", "#0090ff", "#8e4ec6", "#d6409f", "#8d8d8d"]
 
-    function open(target) {
+    // `position`: global point the popup hangs from (bottom of the tab, or the cursor).
+    function open(target, position, parentWindow) {
         window = target;
-        screen = KWinComponents.Workspace.screenAt(KWinComponents.Workspace.cursorPos);
-        color = manager.tabInfo(target).color;
+        transientParent = parentWindow ?? null;
+        tabColor = manager.tabInfo(target).color;
+        nameField.text = manager.tabInfo(target).name;
+        const screen = KWinComponents.Workspace.screenAt(Qt.point(position.x, position.y));
+        const area = screen ? screen.geometry : Qt.rect(0, 0, 1e6, 1e6);
+        x = Math.round(Math.max(area.x, Math.min(position.x, area.x + area.width - width)));
+        y = Math.round(Math.max(area.y, Math.min(position.y, area.y + area.height - height)));
         visible = true;
+        nameField.forceActiveFocus();
+        nameField.selectAll();
     }
 
     function close() {
@@ -29,137 +38,116 @@ KWinComponents.SceneEffect {
         window = null;
     }
 
-    function apply(name) {
+    function apply() {
         if (window && !window.deleted) {
-            manager.setTabInfo(window, name.trim(), color);
+            manager.setTabInfo(window, nameField.text.trim(), tabColor);
         }
         close();
     }
 
+    flags: Qt.Popup | Qt.FramelessWindowHint
+    color: "transparent"
+    title: "United Sets X tab options"
+    width: Kirigami.Units.gridUnit * 20
+    height: card.implicitHeight + 2 * Kirigami.Units.largeSpacing
     visible: false
+    onVisibleChanged: if (manager && manager.host.config().debug) console.info("UnitedSetsX: tab options popup visible", visible, x, y, width, height)
 
-    delegate: Item {
-        id: view
+    Rectangle {
+        anchors.fill: parent
 
-        readonly property bool here: KWinComponents.SceneView.screen === effect.screen
-
-        Kirigami.Theme.colorSet: Kirigami.Theme.View
+        Kirigami.Theme.colorSet: Kirigami.Theme.Window
         Kirigami.Theme.inherit: false
 
-        // Click outside the card: cancel.
-        Rectangle {
+        radius: Kirigami.Units.cornerRadius * 2
+        color: Kirigami.Theme.backgroundColor
+        border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.25)
+
+        ColumnLayout {
+            id: card
             anchors.fill: parent
-            color: Qt.rgba(0, 0, 0, 0.35)
-            MouseArea {
-                anchors.fill: parent
-                onClicked: effect.close()
-            }
-        }
+            anchors.margins: Kirigami.Units.largeSpacing
+            spacing: Kirigami.Units.smallSpacing
 
-        Rectangle {
-            visible: view.here
-            anchors.centerIn: parent
-            width: Kirigami.Units.gridUnit * 24
-            height: card.implicitHeight + 2 * Kirigami.Units.largeSpacing
-            radius: Kirigami.Units.cornerRadius * 2
-            color: Kirigami.Theme.backgroundColor
-            border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.2)
-
-            // Swallow clicks on the card itself.
-            MouseArea {
-                anchors.fill: parent
+            QQC2.Label {
+                text: "Tab name"
             }
 
-            ColumnLayout {
-                id: card
-                anchors.fill: parent
-                anchors.margins: Kirigami.Units.largeSpacing
+            QQC2.TextField {
+                id: nameField
+                Layout.fillWidth: true
+                placeholderText: popup.window ? popup.window.caption : ""
+                onAccepted: popup.apply()
+                Keys.onEscapePressed: popup.close()
+            }
+
+            QQC2.Label {
+                Layout.topMargin: Kirigami.Units.smallSpacing
+                text: "Color"
+            }
+
+            Flow {
+                Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
-                Kirigami.Heading {
-                    level: 3
-                    text: "Tab name and color"
-                }
+                Repeater {
+                    model: popup.palette
 
-                QQC2.TextField {
-                    id: nameField
-                    Layout.fillWidth: true
-                    placeholderText: effect.window ? effect.window.caption : ""
-                    text: effect.window ? effect.manager.tabInfo(effect.window).name : ""
-                    onAccepted: effect.apply(text)
-                    Keys.onEscapePressed: effect.close()
-                }
+                    delegate: Rectangle {
+                        id: swatch
+                        required property string modelData
+                        readonly property bool selected: popup.tabColor === modelData
+                        width: Kirigami.Units.gridUnit * 1.4
+                        height: width
+                        radius: width / 2
+                        color: modelData || "transparent"
+                        border.width: selected ? 3 : 1
+                        border.color: selected ? Kirigami.Theme.highlightColor
+                            : Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.3)
 
-                Flow {
-                    Layout.fillWidth: true
-                    Layout.topMargin: Kirigami.Units.smallSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Repeater {
-                        model: effect.palette
-
-                        delegate: Rectangle {
-                            id: swatch
-                            required property string modelData
-                            readonly property bool selected: effect.color === modelData
-                            width: Kirigami.Units.gridUnit * 1.5
-                            height: width
-                            radius: width / 2
-                            color: modelData || "transparent"
-                            border.width: selected ? 3 : 1
-                            border.color: selected ? Kirigami.Theme.highlightColor
-                                : Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.3)
-
-                            // "No color": a slashed circle.
-                            Rectangle {
-                                visible: !swatch.modelData
-                                anchors.centerIn: parent
-                                width: parent.width * 0.7
-                                height: 1.5
-                                rotation: -45
-                                antialiasing: true
-                                color: Kirigami.Theme.textColor
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: effect.color = swatch.modelData
-                            }
+                        // "No color": a slashed circle.
+                        Rectangle {
+                            visible: !swatch.modelData
+                            anchors.centerIn: parent
+                            width: parent.width * 0.7
+                            height: 1.5
+                            rotation: -45
+                            antialiasing: true
+                            color: Kirigami.Theme.textColor
                         }
-                    }
-                }
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.topMargin: Kirigami.Units.smallSpacing
-
-                    QQC2.Button {
-                        text: "Reset"
-                        onClicked: {
-                            effect.color = "";
-                            effect.apply("");
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: popup.tabColor = swatch.modelData
                         }
-                    }
-                    Item {
-                        Layout.fillWidth: true
-                    }
-                    QQC2.Button {
-                        text: "Cancel"
-                        onClicked: effect.close()
-                    }
-                    QQC2.Button {
-                        text: "OK"
-                        highlighted: true
-                        onClicked: effect.apply(nameField.text)
                     }
                 }
             }
-        }
 
-        Component.onCompleted: {
-            if (here) {
-                nameField.forceActiveFocus();
-                nameField.selectAll();
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: Kirigami.Units.smallSpacing
+
+                QQC2.Button {
+                    text: "Reset"
+                    onClicked: {
+                        nameField.text = "";
+                        popup.tabColor = "";
+                        popup.apply();
+                    }
+                }
+                Item {
+                    Layout.fillWidth: true
+                }
+                QQC2.Button {
+                    text: "Cancel"
+                    onClicked: popup.close()
+                }
+                QQC2.Button {
+                    text: "OK"
+                    highlighted: true
+                    onClicked: popup.apply()
+                }
             }
         }
     }
