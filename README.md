@@ -13,7 +13,8 @@ own title bar, like Chrome, Firefox or GTK apps). Inspired by Groupy and by
 
 - **Drag to group**: hold <kbd>Ctrl</kbd> (or Shift / Alt / Meta, see the settings) while dragging a window by
   its title bar and drop it on another window: both become tabs of one group. Drop it on a tab bar to add a
-  tab. A highlight shows where the window will go.
+  tab. While you drag, the target is highlighted with a preview of the tab the window will become, and the
+  dragged window turns translucent.
 - **Tab bar** in the Breeze style, following your color scheme, accent color and light / dark theme: click a
   tab to switch, <kbd>✕</kbd> or middle click to close, drag to reorder, drag out to release the window,
   drag onto another group's tab bar to move it there.

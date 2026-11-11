@@ -61,6 +61,9 @@ qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.isEffectLoaded ktabland_mod_ct
   thì phải chép file **trước** khi KWin khởi động (`nested.sh` làm vậy) hoặc khởi động lại KWin.
 - KWin chỉ chuyển bàn phím cho cửa sổ nội bộ có cờ `Qt.Popup`, và Qt chỉ hiện popup khi nó có
   `transientParent`. `SceneEffect` khai báo trong script không bao giờ được vẽ.
+- Không khai báo `Window` làm con của một `Item` trong script: Qt chỉ hiện nó khi cửa sổ của
+  `Item` cha đang hiện (script không có), nên `visible = true` không có tác dụng và không báo lỗi.
+  Tạo qua `Instantiator` (như thanh tab, khung tô sáng, popup).
 - Gán `window.frameGeometry` cho cửa sổ đang maximize thì KWin bỏ trạng thái maximize.
 - Engine JS của Qt không hiểu `??=` (file .mjs báo "unavailable").
 - Cửa sổ KWin lồng bị che thì KWin thật ngừng cho nó vẽ: ảnh chụp có thể là khung hình cũ.

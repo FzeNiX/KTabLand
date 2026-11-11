@@ -52,7 +52,8 @@ export class Manager {
     //   changed()            what the tab bars show may have changed (host coalesces calls)
     //   groupAdded(id), groupRemoved(id)
     //   dragStarted(), dragEnded()     a window move began / ended (host polls the modifier)
-    //   highlight(rect | null)         show / hide the drop highlight
+    //   highlight(rect | null, window) show / hide the drop highlight; with a window,
+    //                                  preview the tab it is about to become
     //   later(fn)                      runs fn after the current KWin event
     //   openTabOptions(window, pos)    shows the tab name / color popup at pos
     //   log(message), debug(message)   debug() prints only with Debug=true in the config
@@ -92,6 +93,7 @@ export class Manager {
         }
         this.hooks.clear();
         this.disconnectAll(this.workspaceConnections);
+        this.dimDragged(false);
         this.host.highlight(null);
     }
 
@@ -829,10 +831,28 @@ export class Manager {
         }
         this.drag.held = held;
         this.drag.target = held ? this.dropTarget(this.ws.cursorPos, this.drag.window) : null;
-        this.host.highlight(this.drag.target ? this.drag.target.rect : null);
+        this.host.highlight(this.drag.target ? this.drag.target.rect : null, this.drag.window);
+        this.dimDragged(this.drag.target !== null);
+    }
+
+    // The dragged window turns a little transparent over a target it would join, so the
+    // target and the tab preview show through it.
+    dimDragged(dim) {
+        const drag = this.drag;
+        if (!drag || drag.window.deleted) {
+            return;
+        }
+        if (dim && drag.opacity === undefined) {
+            drag.opacity = drag.window.opacity;
+            drag.window.opacity = Math.min(drag.opacity, 0.7);
+        } else if (!dim && drag.opacity !== undefined) {
+            drag.window.opacity = drag.opacity;
+            drag.opacity = undefined;
+        }
     }
 
     endDrag() {
+        this.dimDragged(false);
         this.drag = null;
         this.host.dragEnded();
         this.host.highlight(null);
@@ -969,6 +989,24 @@ export class Manager {
 
     closeTab(window) {
         window.closeWindow();
+    }
+
+    // Debug shortcut: shows (or hides) the drop feedback as if the active window was being
+    // dragged over the window under it.
+    debugDropPreview() {
+        if (this.drag) {
+            this.endDrag();
+            return;
+        }
+        const active = this.ws.activeWindow;
+        if (!this.isTabbable(active)) {
+            return;
+        }
+        const center = { x: active.x + active.width / 2, y: active.y + active.height / 2 };
+        this.drag = { window: active, held: true, target: null };
+        this.drag.target = this.dropTarget(center, active);
+        this.host.highlight(this.drag.target ? this.drag.target.rect : null, active);
+        this.dimDragged(this.drag.target !== null);
     }
 
     // Debug shortcut: prints every group.

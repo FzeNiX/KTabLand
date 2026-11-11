@@ -85,14 +85,23 @@ Item {
         }
     }
 
-    TabOptions {
-        id: tabOptions
-        manager: root.manager
+    Instantiator {
+        id: tabOptionsHolder
+        model: 1
+        delegate: TabOptions {
+            manager: root.manager
+        }
     }
+    readonly property var tabOptions: tabOptionsHolder.object
 
-    DropHighlight {
-        id: highlight
+    // Windows must not be children of an Item: Qt only shows such a window while the
+    // Item's own window is visible, and a script has none. An Instantiator is their parent.
+    Instantiator {
+        id: highlightHolder
+        model: 1
+        delegate: DropHighlight {}
     }
+    readonly property var highlight: highlightHolder.object
 
     DBusCall {
         id: loadModifierWatcher
@@ -167,6 +176,13 @@ Item {
     }
 
     ShortcutHandler {
+        name: "KTabLand Debug Drop Preview"
+        text: "KTabLand: Show the drop feedback for the active window (debug)"
+        sequence: ""
+        onActivated: root.manager.debugDropPreview()
+    }
+
+    ShortcutHandler {
         name: "KTabLand Debug Dump"
         text: "KTabLand: Print the groups to the log (debug)"
         sequence: ""
@@ -192,7 +208,7 @@ Item {
             later: (fn) => Qt.callLater(fn),
             openTabOptions: (window, position, parentWindow) => {
                 try {
-                    tabOptions.open(window, position, parentWindow);
+                    root.tabOptions.open(window, position, parentWindow);
                 } catch (e) {
                     root.log("cannot open the tab options: " + e);
                 }
@@ -211,7 +227,11 @@ Item {
                 dragPoll.start();
             },
             dragEnded: () => dragPoll.stop(),
-            highlight: (rect) => highlight.showAt(rect),
+            highlight: (rect, window) => {
+                if (root.highlight) {
+                    root.highlight.showAt(rect, window);
+                }
+            },
             log: root.log,
             debug: (message) => {
                 if (root.config.debug) {
