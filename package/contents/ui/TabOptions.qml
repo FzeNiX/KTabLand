@@ -124,6 +124,20 @@ Window {
                 }
             }
 
+            // The app id, to copy into the "Never group these apps" setting.
+            QQC2.Label {
+                Layout.topMargin: Kirigami.Units.smallSpacing
+                text: "App id (for the \"Never group\" setting)"
+                font: Kirigami.Theme.smallFont
+                opacity: 0.7
+            }
+            QQC2.TextField {
+                Layout.fillWidth: true
+                readOnly: true
+                text: popup.window && popup.manager ? popup.manager.appId(popup.window) : ""
+                font: Kirigami.Theme.smallFont
+            }
+
             RowLayout {
                 Layout.fillWidth: true
                 Layout.topMargin: Kirigami.Units.smallSpacing

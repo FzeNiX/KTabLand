@@ -8,6 +8,10 @@
         <entry name="GroupModifier" type="Int">
             <default>1</default>
         </entry>
+        <!-- Apps never grouped: app ids or window classes, separated by commas -->
+        <entry name="ExcludedApps" type="String">
+            <default></default>
+        </entry>
         <entry name="ShowTabBar" type="Bool">
             <default>true</default>
         </entry>

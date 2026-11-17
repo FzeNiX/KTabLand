@@ -24,60 +24,77 @@
     </widget>
    </item>
    <item row="2" column="0">
+    <widget class="QLabel" name="excludedLabel">
+     <property name="text"><string>Never group these apps:</string></property>
+     <property name="buddy"><cstring>kcfg_ExcludedApps</cstring></property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="kcfg_ExcludedApps">
+     <property name="placeholderText"><string>e.g. steam, org.kde.spectacle</string></property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLabel" name="excludedHint">
+     <property name="text"><string>App ids or window classes, separated by commas. Right click a tab › Name and color… shows the app id of its window.</string></property>
+     <property name="wordWrap"><bool>true</bool></property>
+    </widget>
+   </item>
+   <item row="4" column="0">
     <widget class="QLabel" name="tabBarLabel">
      <property name="text"><string>Tab bar:</string></property>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item row="4" column="1">
     <widget class="QCheckBox" name="kcfg_ShowTabBar">
      <property name="text"><string>Show a tab bar above each group</string></property>
     </widget>
    </item>
-   <item row="3" column="0">
+   <item row="5" column="0">
     <widget class="QLabel" name="heightLabel">
      <property name="text"><string>Tab bar height:</string></property>
      <property name="buddy"><cstring>kcfg_TabBarHeight</cstring></property>
     </widget>
    </item>
-   <item row="3" column="1">
+   <item row="5" column="1">
     <widget class="QSpinBox" name="kcfg_TabBarHeight">
      <property name="suffix"><string> px</string></property>
      <property name="minimum"><number>22</number></property>
      <property name="maximum"><number>64</number></property>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="6" column="0">
     <widget class="QLabel" name="widthLabel">
      <property name="text"><string>Maximum tab width:</string></property>
      <property name="buddy"><cstring>kcfg_TabWidth</cstring></property>
     </widget>
    </item>
-   <item row="4" column="1">
+   <item row="6" column="1">
     <widget class="QSpinBox" name="kcfg_TabWidth">
      <property name="suffix"><string> px</string></property>
      <property name="minimum"><number>80</number></property>
      <property name="maximum"><number>600</number></property>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="7" column="0">
     <widget class="QLabel" name="styleLabel">
      <property name="text"><string>Tab bar style:</string></property>
      <property name="buddy"><cstring>kcfg_BarStyle</cstring></property>
     </widget>
    </item>
-   <item row="5" column="1">
+   <item row="7" column="1">
     <widget class="QComboBox" name="kcfg_BarStyle">
      <item><property name="text"><string>Opaque (color scheme)</string></property></item>
      <item><property name="text"><string>Translucent (Plasma theme, like the panel)</string></property></item>
     </widget>
    </item>
-   <item row="6" column="0">
+   <item row="8" column="0">
     <widget class="QLabel" name="cornerLabel">
      <property name="text"><string>Window corner radius:</string></property>
      <property name="buddy"><cstring>kcfg_CornerFill</cstring></property>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item row="8" column="1">
     <widget class="QSpinBox" name="kcfg_CornerFill">
      <property name="suffix"><string> px</string></property>
      <property name="minimum"><number>0</number></property>
@@ -85,13 +102,13 @@
      <property name="toolTip"><string>The tab bar's color wraps around the rounded top corners of the window below it. Set it to the corner radius of your window decoration (0 to turn it off).</string></property>
     </widget>
    </item>
-   <item row="7" column="1">
+   <item row="9" column="1">
     <widget class="QLabel" name="tabOptionsHint">
      <property name="text"><string>Right click a tab to rename it or give it a color.</string></property>
      <property name="wordWrap"><bool>true</bool></property>
     </widget>
    </item>
-   <item row="8" column="1">
+   <item row="10" column="1">
     <widget class="QLabel" name="shortcutHint">
      <property name="text"><string>Shortcuts (next / previous tab...) are in System Settings › Keyboard › Shortcuts › KWin, under "KTabLand".</string></property>
      <property name="wordWrap"><bool>true</bool></property>

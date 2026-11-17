@@ -29,6 +29,9 @@ Item {
             // Radius of the window's rounded top corners, which the bar's color wraps around.
             cornerFill: Number(KWin.readConfig("CornerFill", 8)),
             debug: Boolean(KWin.readConfig("Debug", false)),
+            // Apps never grouped: app ids or window classes, lowercase.
+            excluded: String(KWin.readConfig("ExcludedApps", ""))
+                .split(/[,\s]+/).map((name) => name.trim().toLowerCase()).filter((name) => name.length > 0),
         };
     }
 
@@ -41,6 +44,19 @@ Item {
 
     function log(message) {
         console.info("KTabLand:", message);
+    }
+
+    // Only one of the popups (tab menu, tab options, "+") is open at a time.
+    function closePopups() {
+        for (const popup of [tabMenu, tabOptions, windowPicker]) {
+            if (popup && popup.visible) {
+                popup.close();
+            }
+        }
+    }
+
+    function warn(message) {
+        console.warn("KTabLand: error:", message);
     }
 
     ListModel {
@@ -94,6 +110,25 @@ Item {
     }
     readonly property var tabOptions: tabOptionsHolder.object
 
+    Instantiator {
+        id: tabMenuHolder
+        model: 1
+        delegate: TabMenu {
+            manager: root.manager
+            onRenameRequested: (window, position, barWindow) => root.tabOptions.open(window, position, barWindow)
+        }
+    }
+    readonly property var tabMenu: tabMenuHolder.object
+
+    Instantiator {
+        id: pickerHolder
+        model: 1
+        delegate: WindowPicker {
+            manager: root.manager
+        }
+    }
+    readonly property var windowPicker: pickerHolder.object
+
     // Windows must not be children of an Item: Qt only shows such a window while the
     // Item's own window is visible, and a script has none. An Instantiator is their parent.
     Instantiator {
@@ -139,54 +174,82 @@ Item {
         name: "KTabLand Next Tab"
         text: "KTabLand: Next tab"
         sequence: "Meta+`"
-        onActivated: root.manager.cycle(1)
+        onActivated: root.manager.guard(() => root.manager.cycle(1))
     }
 
     ShortcutHandler {
         name: "KTabLand Previous Tab"
         text: "KTabLand: Previous tab"
         sequence: "Meta+~"
-        onActivated: root.manager.cycle(-1)
+        onActivated: root.manager.guard(() => root.manager.cycle(-1))
     }
 
     ShortcutHandler {
         name: "KTabLand Group With Window Below"
         text: "KTabLand: Group the active window with the window under it"
         sequence: ""
-        onActivated: root.manager.groupActiveWithBelow()
+        onActivated: root.manager.guard(() => root.manager.groupActiveWithBelow())
     }
 
     ShortcutHandler {
         name: "KTabLand Release Tab"
         text: "KTabLand: Release the active tab from its group"
         sequence: ""
-        onActivated: root.manager.detachActive()
+        onActivated: root.manager.guard(() => root.manager.detachActive())
     }
 
     ShortcutHandler {
         name: "KTabLand Tab Options"
         text: "KTabLand: Name and color of the active tab"
         sequence: ""
-        onActivated: {
+        onActivated: root.manager.guard(() => {
             const window = Workspace.activeWindow;
-            if (window && root.manager.groupOf(window)) {
-                root.manager.openTabOptions(window, null, root.barWindow(root.manager.groupOf(window).id));
+            const group = root.manager.groupOf(window);
+            if (group) {
+                root.manager.openTabOptions(window, null, root.barWindow(group.id));
             }
-        }
+        })
+    }
+
+    ShortcutHandler {
+        name: "KTabLand Add Window"
+        text: "KTabLand: Add a window to the active group"
+        sequence: ""
+        onActivated: root.manager.guard(() => {
+            const group = root.manager.groupOf(Workspace.activeWindow);
+            if (group) {
+                const bar = root.manager.barRect(group);
+                root.manager.openWindowPicker(group, { x: bar.x, y: bar.y + bar.height }, root.barWindow(group.id));
+            }
+        })
     }
 
     ShortcutHandler {
         name: "KTabLand Debug Drop Preview"
         text: "KTabLand: Show the drop feedback for the active window (debug)"
         sequence: ""
-        onActivated: root.manager.debugDropPreview()
+        onActivated: root.manager.guard(() => root.manager.debugDropPreview())
+    }
+
+    ShortcutHandler {
+        name: "KTabLand Debug Tab Menu"
+        text: "KTabLand: Open the menu of the active tab (debug)"
+        sequence: ""
+        onActivated: root.manager.guard(() => {
+            const window = Workspace.activeWindow;
+            const group = root.manager.groupOf(window);
+            if (group) {
+                const bar = root.manager.barRect(group);
+                root.manager.openTabMenu(window, { x: bar.x + 40, y: bar.y + bar.height }, root.barWindow(group.id));
+            }
+        })
     }
 
     ShortcutHandler {
         name: "KTabLand Debug Dump"
         text: "KTabLand: Print the groups to the log (debug)"
         sequence: ""
-        onActivated: root.manager.dump()
+        onActivated: root.manager.guard(() => root.manager.dump())
     }
 
     // KWin re-reads its config (System Settings › KWin Scripts › Apply) without restarting
@@ -206,12 +269,17 @@ Item {
             config: () => root.config,
             changed: () => Qt.callLater(root.bump),
             later: (fn) => Qt.callLater(fn),
+            openTabMenu: (window, position, parentWindow) => {
+                root.closePopups();
+                root.tabMenu.open(window, position, parentWindow);
+            },
+            openWindowPicker: (group, position, parentWindow) => {
+                root.closePopups();
+                root.windowPicker.open(group, position, parentWindow);
+            },
             openTabOptions: (window, position, parentWindow) => {
-                try {
-                    root.tabOptions.open(window, position, parentWindow);
-                } catch (e) {
-                    root.log("cannot open the tab options: " + e);
-                }
+                root.closePopups();
+                root.tabOptions.open(window, position, parentWindow);
             },
             groupAdded: (id) => groupModel.append({ gid: id }),
             groupRemoved: (id) => {
@@ -233,6 +301,7 @@ Item {
                 }
             },
             log: root.log,
+            warn: root.warn,
             debug: (message) => {
                 if (root.config.debug) {
                     root.log(message);

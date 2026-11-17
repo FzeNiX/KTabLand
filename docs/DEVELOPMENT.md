@@ -43,6 +43,12 @@ nhập lại để code mới có hiệu lực. Bật log chi tiết:
 `kwriteconfig6 --file kwinrc --group Script-ktabland --key Debug true` rồi
 `qdbus6 org.kde.KWin /KWin reconfigure`.
 
+## Log
+
+`tools/logs.sh` (phiên thật) hoặc `tools/logs.sh --nested`. Lỗi bên trong các hàm xử lý sự kiện của
+script được ghi ở mức cảnh báo, dạng `qml: KTabLand: error: <lỗi> <vị trí>`: KWin không tự báo
+lỗi của các hàm này. Bật thêm log chi tiết bằng `Debug=true` (xem trên).
+
 ## Lệnh D-Bus hữu ích
 
 ```bash

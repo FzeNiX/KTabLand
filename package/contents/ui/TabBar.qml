@@ -38,7 +38,8 @@ Item {
     readonly property color cornerColor: translucent
         ? Qt.rgba(content.Kirigami.Theme.backgroundColor.r, content.Kirigami.Theme.backgroundColor.g, content.Kirigami.Theme.backgroundColor.b, 0.85)
         : content.Kirigami.Theme.backgroundColor
-    readonly property real controlsWidth: inside ? 0 : Kirigami.Units.gridUnit * 3 + 3 * buttonColumn
+    readonly property real plusWidth: inside ? 0 : buttonSize + 2 * Kirigami.Units.smallSpacing
+    readonly property real controlsWidth: inside ? 0 : Kirigami.Units.gridUnit * 3 + 3 * buttonColumn + plusWidth
     readonly property real tabWidth: windows.length > 0
         ? Math.max(0, Math.min(config.tabWidth, (width - 2 * Kirigami.Units.smallSpacing - controlsWidth) / windows.length)) : 0
 
@@ -220,8 +221,8 @@ Item {
                             } else if (mouse.button === Qt.MiddleButton) {
                                 bar.manager.closeTab(tab.modelData);
                             } else if (mouse.button === Qt.RightButton) {
-                                const p = tab.mapToItem(null, 0, tab.height);
-                                bar.manager.openTabOptions(tab.modelData, { x: bar.hostWindow.x + p.x, y: bar.hostWindow.y + p.y }, bar.hostWindow);
+                                const p = tab.mapToItem(null, mouse.x, tab.height);
+                                bar.manager.openTabMenu(tab.modelData, { x: bar.hostWindow.x + p.x, y: bar.hostWindow.y + p.y }, bar.hostWindow);
                             } else {
                                 bar.manager.activate(bar.group, tab.modelData);
                             }
@@ -276,6 +277,46 @@ Item {
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // "+": add a window to the group (like a browser's new tab button).
+        Item {
+            id: plusButton
+            visible: !bar.inside && bar.windows.length > 0
+            x: tabs.x + tabs.width + Kirigami.Units.smallSpacing
+            anchors.verticalCenter: tabs.verticalCenter
+            width: bar.buttonSize
+            height: bar.buttonSize
+
+            Rectangle {
+                anchors.fill: parent
+                radius: width / 2
+                color: {
+                    const c = Kirigami.Theme.textColor;
+                    return Qt.rgba(c.r, c.g, c.b, plusMouse.pressed ? 0.2 : plusMouse.containsMouse ? 0.1 : 0);
+                }
+            }
+            Rectangle {
+                anchors.centerIn: parent
+                width: 11
+                height: 1.2
+                color: Kirigami.Theme.textColor
+            }
+            Rectangle {
+                anchors.centerIn: parent
+                width: 1.2
+                height: 11
+                color: Kirigami.Theme.textColor
+            }
+            MouseArea {
+                id: plusMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: {
+                    const p = plusButton.mapToItem(null, 0, plusButton.height);
+                    bar.manager.openWindowPicker(bar.group, { x: bar.hostWindow.x + p.x, y: bar.hostWindow.y + p.y + 4 }, bar.hostWindow);
                 }
             }
         }

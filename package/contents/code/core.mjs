@@ -56,7 +56,9 @@ export class Manager {
     //                                  preview the tab it is about to become
     //   later(fn)                      runs fn after the current KWin event
     //   openTabOptions(window, pos)    shows the tab name / color popup at pos
-    //   log(message), debug(message)   debug() prints only with Debug=true in the config
+    //   openTabMenu(window, pos), openWindowPicker(group, pos)   tab menu, "+" popup
+    //   log(message), warn(message), debug(message)
+    //                                  debug() prints only with Debug=true in the config
     // }
     constructor(host) {
         this.host = host;
@@ -122,9 +124,22 @@ export class Manager {
         return result;
     }
 
+    // Connects `handler` to `signal`. An exception in a handler would otherwise vanish
+    // without a trace (KWin does not report errors of script signal handlers).
     connect(list, signal, handler) {
-        signal.connect(handler);
-        list.push({ signal, handler });
+        const safe = (...args) => this.guard(handler, ...args);
+        signal.connect(safe);
+        list.push({ signal, handler: safe });
+    }
+
+    // Runs `fn`; an exception is logged as a warning instead of being lost.
+    guard(fn, ...args) {
+        try {
+            return fn(...args);
+        } catch (e) {
+            this.host.warn(`${e}\n${e.stack ?? ""}`);
+            return undefined;
+        }
     }
 
     disconnectAll(list) {
@@ -179,7 +194,25 @@ export class Manager {
     isTabbable(window) {
         return !!window && !window.deleted && window.managed && !this.isInternal(window) && window.normalWindow
             && !window.transient && !window.specialWindow && !window.popupWindow
-            && window.moveable && !window.fullScreen;
+            && window.moveable && !window.fullScreen && !this.isExcluded(window);
+    }
+
+    // Identifier of a window's app as written in the exclusion list: its app id
+    // (desktop file name) when it has one, else its window class.
+    appId(window) {
+        return window.desktopFileName || window.resourceClass || "";
+    }
+
+    // Apps listed in the "Never group" setting (app ids or window classes).
+    isExcluded(window) {
+        const excluded = this.host.config().excluded;
+        if (!excluded || excluded.length === 0) {
+            return false;
+        }
+        const names = [window.desktopFileName, window.resourceClass, window.resourceName]
+            .filter((name) => !!name)
+            .map((name) => String(name).toLowerCase());
+        return names.some((name) => excluded.includes(name));
     }
 
     // KWin's own windows (tab bars, highlight, OSDs) are "managed" too; they have no
@@ -967,6 +1000,16 @@ export class Manager {
         this.changed();
     }
 
+    // Right click on a tab. `position`: global point under the tab.
+    openTabMenu(window, position, parentWindow) {
+        this.host.openTabMenu(window, position, parentWindow);
+    }
+
+    // The "+" button of a group's tab bar.
+    openWindowPicker(group, position, parentWindow) {
+        this.host.openWindowPicker(group, position, parentWindow);
+    }
+
     // `position`: global point under the tab; by default under the group's tab bar.
     openTabOptions(window, position, parentWindow) {
         const group = this.groupOf(window);
@@ -989,6 +1032,48 @@ export class Manager {
 
     closeTab(window) {
         window.closeWindow();
+    }
+
+    closeOtherTabs(group, keep) {
+        for (const window of [...group.windows]) {
+            if (window !== keep) {
+                window.closeWindow();
+            }
+        }
+    }
+
+    // Groups other than `group`, for "Move to group" (described by their visible tab).
+    otherGroups(group) {
+        return this.groups.filter((other) => other !== group);
+    }
+
+    // Windows that the "+" button can add to `group`: every window that can be a tab and
+    // is not in `group`, the ones on the current desktop first, most recent first.
+    addCandidates(group) {
+        const candidates = [];
+        for (const window of this.allWindows()) {
+            if (this.isTabbable(window) && this.groupOf(window) !== group) {
+                candidates.push(window);
+            }
+        }
+        const here = (w) => this.isOnCurrentDesktop(w) ? 0 : 1;
+        candidates.sort((a, b) => here(a) - here(b) || b.stackingOrder - a.stackingOrder);
+        return candidates;
+    }
+
+    // Adds `window` to `group` as its visible tab; a tab of another group moves alone.
+    addToGroup(group, window) {
+        if (!this.groups.includes(group) || !this.isTabbable(window)) {
+            return;
+        }
+        if (window.minimized) {
+            window.minimized = false;
+        }
+        if (this.groupOf(window)) {
+            this.moveToGroup(window, group);
+        } else {
+            this.join(window, group.active);
+        }
     }
 
     // Debug shortcut: shows (or hides) the drop feedback as if the active window was being
